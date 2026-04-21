@@ -67,7 +67,6 @@ export function DashboardNav({ profile }: DashboardNavProps) {
     .toUpperCase() || profile.email[0].toUpperCase()
 
   return (
-<<<<<<< HEAD
     <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-lg border-b border-slate-200/50 shadow-sm">
       <div className="container flex h-16 items-center justify-between gap-6">
         {/* Logo Section */}
@@ -91,29 +90,10 @@ export function DashboardNav({ profile }: DashboardNavProps) {
         
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-2 flex-1 ml-6">
-=======
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 flex">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Image
-              src="/brand/eis-logo.jpg"
-              alt="EIS logo"
-              width={64}
-              height={64}
-              className="rounded-sm border"
-            />
-            <span className="font-semibold">MaintenanceAI</span>
-          </Link>
-        </div>
-        
-        <nav className="flex items-center gap-1 flex-1">
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
           {links.map((link) => {
             const Icon = link.icon
             const isActive = pathname === link.href
             return (
-<<<<<<< HEAD
               <Link key={link.href} href={link.href} className="relative group">
                 <Button 
                   variant="ghost" 
@@ -131,46 +111,23 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                 {isActive && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-in fade-in" />
                 )}
-=======
-              <Link key={link.href} href={link.href}>
-                <Button 
-                  variant={isActive ? 'secondary' : 'ghost'} 
-                  size="sm"
-                  className={cn(
-                    'gap-2',
-                    isActive && 'bg-secondary'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden md:inline">{link.label}</span>
-                </Button>
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
               </Link>
             )
           })}
         </nav>
 
-<<<<<<< HEAD
         {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-slate-100 transition-all duration-200 shadow-sm border border-slate-200/50">
               <Avatar className="h-10 w-10 ring-2 ring-blue-200/50">
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white font-bold text-sm">
-=======
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/10 text-primary">
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
                   {initials}
                 </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
-<<<<<<< HEAD
             <DropdownMenuLabel className="font-normal px-2 py-3">
               <div className="flex flex-col space-y-2">
                 <p className="text-sm font-bold text-slate-900">{profile.full_name || 'User'}</p>
@@ -201,35 +158,6 @@ export function DashboardNav({ profile }: DashboardNavProps) {
             >
               <LogOut className="h-4 w-4" />
               <span>Log out</span>
-=======
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{profile.full_name || 'User'}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {profile.email}
-                </p>
-                {profile.role !== 'user' ? (
-                  <p className="text-xs leading-none text-muted-foreground capitalize">
-                    {profile.role}
-                  </p>
-                ) : null}
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/profile" className="flex items-center">
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => signOut()}
-              className="text-destructive focus:text-destructive"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

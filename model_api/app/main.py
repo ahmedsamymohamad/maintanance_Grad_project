@@ -24,12 +24,9 @@ MODEL_PATHS = {
     "branch_1": Path(os.getenv("MODEL_BRANCH_1_PATH", str(MODEL_DIR / "branch_1_best_model.joblib"))),
     "branch_2": Path(os.getenv("MODEL_BRANCH_2_PATH", str(MODEL_DIR / "branch_2_model.joblib"))),
     "branch_3": Path(os.getenv("MODEL_BRANCH_3_PATH", str(MODEL_DIR / "branch_3_model.joblib"))),
-<<<<<<< HEAD
     "branch_1_printer": Path(os.getenv("MODEL_BRANCH_1_PRINTER_PATH", str(MODEL_DIR / "branch_1_printer_model.joblib"))),
     "branch_2_printer": Path(os.getenv("MODEL_BRANCH_2_PRINTER_PATH", str(MODEL_DIR / "branch_2_printer_model.joblib"))),
     "branch_3_printer": Path(os.getenv("MODEL_BRANCH_3_PRINTER_PATH", str(MODEL_DIR / "branch_3_printer_model.joblib"))),
-=======
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
 }
 
 DEVICE_TYPE_MODEL_KEY_MAP = {
@@ -42,7 +39,6 @@ DEVICE_TYPE_MODEL_KEY_MAP = {
     "branch_3": "branch_3",
     "branch3": "branch_3",
     "3": "branch_3",
-<<<<<<< HEAD
     "branch_1_printer": "branch_1_printer",
     "branch1_printer": "branch_1_printer",
     "1_printer": "branch_1_printer",
@@ -52,8 +48,6 @@ DEVICE_TYPE_MODEL_KEY_MAP = {
     "branch_3_printer": "branch_3_printer",
     "branch3_printer": "branch_3_printer",
     "3_printer": "branch_3_printer",
-=======
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
 }
 
 ROLLING_BASE_COLUMNS = ["temperature", "load", "vibration", "health_score", "counter_diff"]

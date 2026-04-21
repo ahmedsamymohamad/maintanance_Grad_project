@@ -62,13 +62,8 @@ export default async function HomePage() {
               className="rounded-md border"
             />
             <div className="leading-tight">
-<<<<<<< HEAD
               <span className="block text-lg font-bold tracking-wide">Maintenance EIS</span>
               <span className="text-xs text-muted-foreground font-medium">System</span>
-=======
-              <span className="block text-xl font-bold">MaintenanceAI</span>
-              <span className="text-xs text-muted-foreground">by EIS</span>
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -140,11 +135,7 @@ export default async function HomePage() {
         <div className="container py-16 text-center">
           <h2 className="text-2xl font-bold mb-4">Ready to reduce downtime?</h2>
           <p className="text-muted-foreground mb-8">
-<<<<<<< HEAD
             Join organizations that trust Maintenance EIS System for their equipment management
-=======
-            Join organizations that trust MaintenanceAI for their equipment management
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
           </p>
           <Link href="/auth/signup">
             <Button size="lg">Get Started Today</Button>
@@ -163,11 +154,7 @@ export default async function HomePage() {
               height={28}
               className="rounded-md border"
             />
-<<<<<<< HEAD
             <span className="font-semibold tracking-wide">Maintenance EIS System</span>
-=======
-            <span className="font-semibold">MaintenanceAI by EIS</span>
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
           </div>
           <p className="text-sm text-muted-foreground">
             AI-Powered Predictive Maintenance System

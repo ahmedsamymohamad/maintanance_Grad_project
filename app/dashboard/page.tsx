@@ -6,7 +6,6 @@ import { TechnicianDashboard } from '@/components/dashboard/technician-dashboard
 import { UserDashboard } from '@/components/dashboard/user-dashboard'
 
 export default async function DashboardPage() {
-<<<<<<< HEAD
   try {
     const supabase = await createClient()
     const user = await requireCurrentUser()
@@ -46,28 +45,4 @@ export default async function DashboardPage() {
     console.error('[DashboardPage] Unexpected error:', error)
     redirect('/auth/login')
   }
-=======
-  const supabase = await createClient()
-  const user = await requireCurrentUser()
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile) {
-    redirect('/auth/login')
-  }
-
-  if (profile.role === 'admin') {
-    return <AdminDashboard />
-  }
-
-  if (profile.role === 'technician') {
-    return <TechnicianDashboard technicianId={user.id} technicianEmail={user.email} />
-  }
-
-  return <UserDashboard userId={user.id} />
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
 }

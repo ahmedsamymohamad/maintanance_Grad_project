@@ -504,18 +504,12 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
                   <SelectValue placeholder="Choose device type" />
                 </SelectTrigger>
                 <SelectContent>
-<<<<<<< HEAD
                   <SelectItem value="branch_1">Branch 1 - Scanner</SelectItem>
                   <SelectItem value="branch_2">Branch 2 - Scanner</SelectItem>
                   <SelectItem value="branch_3">Branch 3 - Scanner</SelectItem>
                   <SelectItem value="branch_1_printer">Branch 1 - Printer</SelectItem>
                   <SelectItem value="branch_2_printer">Branch 2 - Printer</SelectItem>
                   <SelectItem value="branch_3_printer">Branch 3 - Printer</SelectItem>
-=======
-                  <SelectItem value="branch_1">Branch 1</SelectItem>
-                  <SelectItem value="branch_2">Branch 2</SelectItem>
-                  <SelectItem value="branch_3">Branch 3</SelectItem>
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
                 </SelectContent>
               </Select>
             </Field>

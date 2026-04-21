@@ -1,11 +1,7 @@
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-<<<<<<< HEAD
 import { Cpu, ClipboardList, AlertTriangle, CheckCircle, TrendingUp, Printer, Scan, Eye, Zap, Clock, Activity } from 'lucide-react'
-=======
-import { Cpu, ClipboardList, AlertTriangle, CheckCircle } from 'lucide-react'
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
@@ -34,7 +30,6 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
   ])
 
   const stats = [
-<<<<<<< HEAD
     { label: 'My Devices', value: deviceCount || 0, icon: Cpu, color: 'from-blue-600 to-blue-500', trend: '+2.5%', trendUp: true },
     { label: 'Pending Requests', value: pendingRequests || 0, icon: ClipboardList, color: 'from-amber-600 to-amber-500', trend: '-1.2%', trendUp: false },
   ]
@@ -86,46 +81,12 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
                 <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                   <div className={`h-full bg-gradient-to-r ${stat.color} transition-all duration-500`} style={{width: `${Math.min(100, (stat.value / 10) * 100)}%`}}></div>
                 </div>
-=======
-    { label: 'My Devices', value: deviceCount || 0, icon: Cpu, color: 'text-blue-600' },
-    { label: 'Pending Requests', value: pendingRequests || 0, icon: ClipboardList, color: 'text-amber-600' },
-  ]
-
-  const statusColors: Record<string, string> = {
-    active: 'bg-green-100 text-green-800',
-    maintenance: 'bg-amber-100 text-amber-800',
-    decommissioned: 'bg-red-100 text-red-800',
-  }
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Dashboard</h1>
-        <p className="text-muted-foreground">Monitor your devices and maintenance status</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {stats.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <Card key={stat.label}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.label}
-                </CardTitle>
-                <Icon className={`h-5 w-5 ${stat.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stat.value}</div>
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
               </CardContent>
             </Card>
           )
         })}
       </div>
 
-<<<<<<< HEAD
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* My Devices Section */}
@@ -187,46 +148,12 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
                   <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300">
                     Add Your First Device
                   </Button>
-=======
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* My Devices */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>My Devices</CardTitle>
-              <CardDescription>Your registered scanners and printers</CardDescription>
-            </div>
-            <Link href="/dashboard/my-devices">
-              <Button variant="outline" size="sm">Manage</Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {myDevices && myDevices.length > 0 ? (
-              <div className="space-y-3">
-                {myDevices.map((device: any) => (
-                  <div key={device.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{device.brand} {device.model}</p>
-                      <p className="text-sm text-muted-foreground capitalize">{device.device_type}</p>
-                    </div>
-                    <Badge className={statusColors[device.status]}>{device.status}</Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                <Cpu className="h-8 w-8 mx-auto mb-2" />
-                <p>No devices registered yet</p>
-                <Link href="/dashboard/my-devices">
-                  <Button variant="link" size="sm">Add your first device</Button>
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
                 </Link>
               </div>
             )}
           </CardContent>
         </Card>
 
-<<<<<<< HEAD
         {/* AI Predictions Section */}
         <Card className="border border-slate-200/50 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden lg:col-span-1">
           <div className="border-b border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-green-50/50 px-6 py-5 backdrop-blur-sm">
@@ -280,38 +207,6 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                   <span className="text-xs font-semibold text-green-700">98% Confidence</span>
                 </div>
-=======
-        {/* AI Alerts */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              AI Predictions
-            </CardTitle>
-            <CardDescription>Potential issues detected by AI</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {myPredictions && myPredictions.length > 0 ? (
-              <div className="space-y-3">
-                {myPredictions.map((prediction: any) => (
-                  <div key={prediction.id} className="flex items-start justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{prediction.predicted_issue}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {prediction.devices?.brand} {prediction.devices?.model}
-                      </p>
-                    </div>
-                    <Badge variant={(prediction.confidence_score || 0) > 0.7 ? 'destructive' : 'secondary'}>
-                      {Math.round((prediction.confidence_score || 0) * 100)}% risk
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center py-4 text-green-600">
-                <CheckCircle className="h-8 w-8 mb-2" />
-                <p>No issues predicted</p>
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
               </div>
             )}
           </CardContent>

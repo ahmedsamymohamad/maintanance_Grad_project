@@ -123,7 +123,6 @@
     @apply bg-background text-foreground;
   }
 }
-<<<<<<< HEAD
 
 @layer components {
   /* Professional Animations */
@@ -221,5 +220,3 @@
     @apply bg-blue-500/20 text-slate-900;
   }
 }
-=======
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494

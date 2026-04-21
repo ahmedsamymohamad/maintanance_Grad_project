@@ -9,7 +9,6 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-<<<<<<< HEAD
   try {
     const supabase = await createClient()
     const user = await requireCurrentUser()
@@ -46,28 +45,4 @@ export default async function DashboardLayout({
     console.error('[DashboardLayout] Unexpected error:', error)
     redirect('/auth/login')
   }
-=======
-  const supabase = await createClient()
-  const user = await requireCurrentUser()
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile) {
-    redirect('/auth/login')
-  }
-
-  return (
-    <div className="min-h-screen bg-muted/30">
-      <DashboardNav profile={profile} />
-      <main className="container mx-auto p-6">
-        {children}
-      </main>
-      <ChatbotWrapper />
-    </div>
-  )
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
 }

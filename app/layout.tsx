@@ -7,32 +7,18 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-<<<<<<< HEAD
   title: 'Maintenance EIS System - Predictive Maintenance Platform',
   description: 'Professional predictive maintenance platform for scanners and printers. Prevent failures, streamline repairs, and manage inventory efficiently.',
   generator: 'v0.app',
   openGraph: {
     title: 'Maintenance EIS System - Predictive Maintenance Platform',
     description: 'Professional predictive maintenance platform for scanners and printers.',
-=======
-  title: 'MaintenanceAI - Predictive Maintenance System',
-  description: 'AI-powered predictive maintenance system for scanners and printers. Prevent failures, streamline repairs, and manage inventory.',
-  generator: 'v0.app',
-  openGraph: {
-    title: 'MaintenanceAI - Predictive Maintenance System',
-    description: 'AI-powered predictive maintenance system for scanners and printers.',
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
     images: ['/brand/eis-logo.jpg'],
   },
   twitter: {
     card: 'summary',
-<<<<<<< HEAD
     title: 'Maintenance EIS System - Predictive Maintenance Platform',
     description: 'Professional predictive maintenance platform for scanners and printers.',
-=======
-    title: 'MaintenanceAI - Predictive Maintenance System',
-    description: 'AI-powered predictive maintenance system for scanners and printers.',
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
     images: ['/brand/eis-logo.jpg'],
   },
   icons: {

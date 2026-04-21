@@ -4,11 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-<<<<<<< HEAD
 import { Send, Loader2, X, Maximize2, Minimize2, Wrench, Moon, Sun } from 'lucide-react'
-=======
-import { Send, Loader2, X } from 'lucide-react'
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
 
 interface Message {
   id: string
@@ -16,31 +12,21 @@ interface Message {
   content: string
 }
 
-<<<<<<< HEAD
 type ThemeType = 'dark' | 'light'
 
-=======
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
 export function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-<<<<<<< HEAD
       content: 'Hello 👋 Welcome to Maintenance EIS System!\n\nI\'m here to help you with:\n• Maintenance requests\n• System troubleshooting\n\nWhat can I assist you with today?'
-=======
-      content: 'Hello 👋 How can I help you today?\n\nDo you want to submit a maintenance request, or fix a device issue?'
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
     }
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
-<<<<<<< HEAD
   const [theme, setTheme] = useState<ThemeType>('dark')
-=======
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
   const scrollRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -109,17 +95,13 @@ export function Chatbot() {
     }
   }
 
-<<<<<<< HEAD
   const isDark = theme === 'dark'
 
-=======
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {isOpen ? (
         <div
           ref={containerRef}
-<<<<<<< HEAD
           className={`flex flex-col rounded-2xl transition-all duration-300 ${
             isExpanded ? 'w-[90vw] h-[90vh] max-w-5xl' : 'w-96 h-[32rem]'
           } ${
@@ -340,96 +322,6 @@ export function Chatbot() {
         >
           🔧
         </button>
-=======
-          className={`flex flex-col shadow-2xl rounded-lg border border-gray-300 bg-white transition-all duration-300 ${
-            isExpanded ? 'w-[90vw] h-[90vh] max-w-4xl max-h-4xl' : 'w-96 h-96'
-          }`}
-        >
-          <Card className="rounded-lg h-full flex flex-col border-0 shadow-none">
-            <CardHeader className="border-b border-gray-200 flex flex-row items-center justify-between py-3 px-4 flex-shrink-0 bg-gradient-to-r from-blue-50 to-blue-100">
-              <div className="flex-1">
-                <CardTitle className="text-lg font-bold text-gray-800">Maintenance Assistant</CardTitle>
-                <CardDescription className="text-xs text-gray-600 mt-1">Ask me anything about your devices 💬</CardDescription>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="h-6 w-6 p-0 hover:bg-blue-200"
-                  title={isExpanded ? "Minimize" : "Expand"}
-                >
-                  {isExpanded ? '⬜' : '⬛'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsOpen(false)}
-                  className="h-6 w-6 p-0 hover:bg-red-200"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
-              {messages.map(msg => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`rounded-lg px-4 py-2 max-w-[80%] text-sm leading-relaxed whitespace-pre-wrap break-words ${
-                      msg.role === 'user'
-                        ? 'bg-blue-600 text-white rounded-br-none'
-                        : 'bg-white text-gray-900 rounded-bl-none border border-gray-200'
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white text-gray-900 rounded-lg rounded-bl-none px-4 py-2 flex items-center gap-2 border border-gray-200">
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                    <span className="text-sm">Typing...</span>
-                  </div>
-                </div>
-              )}
-              <div ref={scrollRef} />
-            </div>
-
-            <div className="border-t border-gray-200 p-4 flex-shrink-0 bg-white">
-              <form onSubmit={handleSendMessage} className="flex gap-2">
-                <Input
-                  placeholder="Type your message..."
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  disabled={isLoading}
-                  autoFocus
-                  className="flex-1 text-sm"
-                />
-                <Button
-                  size="icon"
-                  disabled={isLoading || !input.trim()}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
-            </div>
-          </Card>
-        </div>
-      ) : (
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="rounded-full h-14 w-14 shadow-lg bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-          size="icon"
-        >
-          <span className="text-2xl">💬</span>
-        </Button>
->>>>>>> 18715494df0d147d170de7e7fed608d2e44a6494
       )}
     </div>
   )
