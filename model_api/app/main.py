@@ -249,6 +249,118 @@ def predict_latest_scanners(df: pd.DataFrame, feature_columns: list[str], model:
     ]
 
 
+PRINTER_REQUIRED_COLUMNS = [
+    "date",
+    "device_id",
+    "printer_model",
+    "temperature",
+    "print_count",
+    "usage_hours",
+    "toner_level",
+    "paper_jam",
+    "error_code",
+]
+
+
+def _is_no_error(value: Any) -> bool:
+    if pd.isna(value):
+        return True
+    text = str(value).strip().lower()
+    return text in {"", "0", "ok", "none", "nan", "no_error", "no-error", "noerror"}
+
+
+def prepare_printer_inference_data(df: pd.DataFrame) -> pd.DataFrame:
+    missing = [c for c in PRINTER_REQUIRED_COLUMNS if c not in df.columns]
+    if missing:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Missing required printer columns: {', '.join(missing)}",
+        )
+
+    p = df.copy()
+    p["date"] = pd.to_datetime(p["date"], errors="coerce")
+    p = p.dropna(subset=["date"]).sort_values(["device_id", "date"]).reset_index(drop=True)
+
+    p["day_of_week"] = p["date"].dt.dayofweek
+    p["month"] = p["date"].dt.month
+    p["day"] = p["date"].dt.day
+    p["is_weekend"] = (p["day_of_week"] >= 5).astype(int)
+
+    p["error_flag"] = p["error_code"].apply(lambda v: 0 if _is_no_error(v) else 1)
+
+    g = p.groupby("device_id")
+    p["temperature_mean_3"] = g["temperature"].transform(lambda s: s.shift(1).rolling(3).mean())
+    p["temperature_std_3"] = g["temperature"].transform(lambda s: s.shift(1).rolling(3).std())
+    p["usage_hours_mean_3"] = g["usage_hours"].transform(lambda s: s.shift(1).rolling(3).mean())
+    p["usage_hours_std_3"] = g["usage_hours"].transform(lambda s: s.shift(1).rolling(3).std())
+    p["print_count_diff_1"] = g["print_count"].diff(1)
+    p["print_count_mean_3"] = g["print_count"].transform(lambda s: s.shift(1).rolling(3).mean())
+    p["toner_level_diff_1"] = g["toner_level"].diff(1)
+    p["paper_jam_sum_7"] = g["paper_jam"].transform(lambda s: s.shift(1).rolling(7).sum())
+    p["paper_jam_mean_3"] = g["paper_jam"].transform(lambda s: s.shift(1).rolling(3).mean())
+    p["temperature_max_7"] = g["temperature"].transform(lambda s: s.shift(1).rolling(7).max())
+    p["toner_level_min_7"] = g["toner_level"].transform(lambda s: s.shift(1).rolling(7).min())
+    p["usage_hours_sum_7"] = g["usage_hours"].transform(lambda s: s.shift(1).rolling(7).sum())
+    p["error_count_7"] = g["error_flag"].transform(lambda s: s.shift(1).rolling(7).sum())
+
+    if "failure" in p.columns:
+        def _tslf(group: pd.DataFrame) -> list[float]:
+            last_failure: pd.Timestamp | None = None
+            out: list[float] = []
+            for _, row in group.iterrows():
+                out.append(365.0 if last_failure is None else float((row["date"] - last_failure).days))
+                if int(row.get("failure", 0) or 0) == 1:
+                    last_failure = row["date"]
+            return out
+
+        tslf_series = pd.concat(
+            [pd.Series(_tslf(grp), index=grp.index) for _, grp in p.groupby("device_id")]
+        )
+        p["time_since_last_failure"] = tslf_series.sort_index()
+    else:
+        p["time_since_last_failure"] = 365.0
+
+    p["stress_score"] = (
+        (p["temperature"].fillna(0) / 100.0)
+        + (p["usage_hours"].fillna(0) / 24.0)
+        + p["paper_jam"].fillna(0)
+        + p["error_flag"]
+    )
+
+    return p
+
+
+def predict_latest_printers(df: pd.DataFrame, model_dict: dict[str, Any]) -> list[dict[str, Any]]:
+    if df.empty:
+        return []
+
+    pipeline = model_dict["pipeline"]
+    feature_cols = list(model_dict["feature_cols"])
+
+    latest_indices = df.groupby("device_id")["date"].idxmax()
+    latest_rows = df.loc[latest_indices].copy().reset_index(drop=True)
+
+    feature_frame = latest_rows.reindex(columns=feature_cols)
+    probabilities = pipeline.predict_proba(feature_frame)[:, 1]
+
+    latest_rows["failure_probability_next_7d"] = probabilities
+    latest_rows["risk_level"] = latest_rows["failure_probability_next_7d"].apply(get_risk_level)
+    latest_rows["recommendation"] = latest_rows["risk_level"].apply(get_recommendation)
+    latest_rows = latest_rows.sort_values(by="failure_probability_next_7d", ascending=False).reset_index(drop=True)
+
+    return [
+        {
+            "serial_number": str(row["device_id"]),
+            "scanner_model": str(row.get("printer_model", "Printer")),
+            "date": row["date"].strftime("%Y-%m-%d"),
+            "failure_probability_next_7d": float(row["failure_probability_next_7d"]),
+            "risk_level": row["risk_level"],
+            "recommendation": row["recommendation"],
+        }
+        for _, row in latest_rows.iterrows()
+    ]
+
+
 @app.post("/predict/dataset")
 async def predict_dataset(
     file: UploadFile = File(...),
@@ -256,7 +368,6 @@ async def predict_dataset(
 ) -> dict[str, Any]:
     contents = await file.read()
     dataframe = read_dataset(contents, file.filename or "dataset.csv")
-    prepared_df, feature_columns = prepare_inference_data(dataframe)
 
     model_key = resolve_model_key(device_type)
     model = MODEL_REGISTRY.get(model_key)
@@ -264,13 +375,22 @@ async def predict_dataset(
     if model is None:
         raise HTTPException(status_code=500, detail=f"Model is not loaded for {model_key}")
 
-    latest_predictions = predict_latest_scanners(prepared_df, feature_columns, model)
+    if model_key.endswith("_printer"):
+        prepared_df = prepare_printer_inference_data(dataframe)
+        latest_predictions = predict_latest_printers(prepared_df, model)
+        device_label = "printers"
+    else:
+        prepared_df, feature_columns = prepare_inference_data(dataframe)
+        latest_predictions = predict_latest_scanners(prepared_df, feature_columns, model)
+        device_label = "scanners"
+
     return {
         "success": True,
         "model_key": model_key,
         "predictions": latest_predictions,
         "summary": {
-            "total_scanners": len(latest_predictions),
+            f"total_{device_label}": len(latest_predictions),
+            "total_devices": len(latest_predictions),
             "high_risk_count": sum(
                 1 for item in latest_predictions if item["risk_level"] in {"High", "Critical"}
             ),
