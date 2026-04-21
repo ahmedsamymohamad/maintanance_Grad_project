@@ -138,11 +138,11 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
                       <div className="text-5xl font-bold text-slate-900 tracking-tight">
                         {stat.value}
                       </div>
-                      <div
+                      {/* <div
                         className={`flex items-center gap-0.5 text-sm font-medium ${stat.trendUp ? "text-green-600" : "text-red-600"}`}
                       >
                         {stat.trendUp ? "↑" : "↓"} {stat.trend}
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div
@@ -265,7 +265,7 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
         </Card>
 
         {/* AI Predictions Section */}
-        <Card className="border border-slate-200/50 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden lg:col-span-1">
+        {/* <Card className="border border-slate-200/50 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden lg:col-span-1">
           <div className="border-b border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-green-50/50 px-6 py-5 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-1">
               <Activity className="h-5 w-5 text-blue-500" />
@@ -361,7 +361,7 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
