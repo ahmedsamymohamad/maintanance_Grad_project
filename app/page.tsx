@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Wrench, Brain, ClipboardList, Package, Shield, Users } from 'lucide-react'
+import { ThemeToggle } from '@/components/dashboard/theme-toggle'
 
 export default async function HomePage() {
   await createClient()
@@ -52,21 +53,22 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container flex h-20 items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
               src="/brand/eis-logo.jpg"
               alt="EIS logo"
-              width={36}
-              height={36}
-              className="rounded-md border"
+              width={64}
+              height={64}
+              className="rounded-lg border"
             />
             <div className="leading-tight">
-              <span className="block text-lg font-bold tracking-wide">Maintenance EIS</span>
-              <span className="text-xs text-muted-foreground font-medium">System</span>
+              <span className="block text-xl font-bold tracking-wide">Maintenance EIS</span>
+              <span className="text-sm text-muted-foreground font-medium">System</span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Link href="/auth/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
@@ -150,11 +152,11 @@ export default async function HomePage() {
             <Image
               src="/brand/eis-logo.jpg"
               alt="EIS logo"
-              width={28}
-              height={28}
+              width={48}
+              height={48}
               className="rounded-md border"
             />
-            <span className="font-semibold tracking-wide">Maintenance EIS System</span>
+            <span className="text-lg font-semibold tracking-wide">Maintenance EIS System</span>
           </div>
           <p className="text-sm text-muted-foreground">
             AI-Powered Predictive Maintenance System

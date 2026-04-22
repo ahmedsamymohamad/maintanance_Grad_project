@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ThemeToggle } from '@/components/dashboard/theme-toggle'
 import { 
   LayoutDashboard, 
   ClipboardList, 
@@ -67,23 +68,23 @@ export function DashboardNav({ profile }: DashboardNavProps) {
     .toUpperCase() || profile.email[0].toUpperCase()
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-lg border-b border-slate-200/50 shadow-sm">
-      <div className="container flex h-16 items-center justify-between gap-6">
+    <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-lg border-b border-slate-200/50 shadow-sm dark:bg-slate-900/90 dark:border-slate-700/50 dark:shadow-black/30">
+      <div className="container flex h-20 items-center justify-between gap-6">
         {/* Logo Section */}
         <div className="flex items-center flex-shrink-0">
           <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 group">
-            <div className="relative w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+            <div className="relative w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-500 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow dark:from-cyan-600 dark:to-cyan-500 dark:shadow-cyan-900/30">
               <Image
                 src="/brand/eis-logo.jpg"
                 alt="EIS logo"
-                width={40}
-                height={40}
-                className="rounded-md object-cover"
+                width={64}
+                height={64}
+                className="rounded-lg object-cover"
               />
             </div>
             <div className="hidden sm:flex flex-col">
-              <span className="font-bold text-base tracking-tight text-slate-900 leading-tight">Maintenance EIS</span>
-              <span className="text-xs text-slate-500 leading-tight">System</span>
+              <span className="font-bold text-lg tracking-tight text-slate-900 leading-tight dark:text-white">Maintenance EIS</span>
+              <span className="text-sm text-slate-500 leading-tight dark:text-slate-400">System</span>
             </div>
           </Link>
         </div>
@@ -101,27 +102,31 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   className={cn(
                     'gap-2.5 transition-all duration-200 font-medium',
                     isActive 
-                      ? 'bg-blue-100/80 text-blue-700 hover:bg-blue-100' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50'
+                      ? 'bg-blue-100/80 text-blue-700 hover:bg-blue-100 dark:bg-cyan-500/15 dark:text-cyan-300 dark:hover:bg-cyan-500/20' 
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50'
                   )}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{link.label}</span>
                 </Button>
                 {isActive && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-in fade-in" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-in fade-in dark:from-cyan-400 dark:to-cyan-300" />
                 )}
               </Link>
             )
           })}
         </nav>
 
+        {/* Right side actions */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+
         {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-slate-100 transition-all duration-200 shadow-sm border border-slate-200/50">
-              <Avatar className="h-10 w-10 ring-2 ring-blue-200/50">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white font-bold text-sm">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-slate-100 transition-all duration-200 shadow-sm border border-slate-200/50 dark:border-slate-700/60 dark:hover:bg-slate-700/60">
+              <Avatar className="h-10 w-10 ring-2 ring-blue-200/50 dark:ring-cyan-400/30">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white font-bold text-sm dark:from-cyan-500 dark:to-teal-400">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -161,6 +166,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   )

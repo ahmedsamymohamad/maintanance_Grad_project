@@ -32,8 +32,8 @@ export default function LoginPage() {
             <Image
               src="/brand/eis-logo.jpg"
               alt="EIS logo"
-              width={64}
-              height={64}
+              width={96}
+              height={96}
               className="rounded-xl border"
             />
           </div>
