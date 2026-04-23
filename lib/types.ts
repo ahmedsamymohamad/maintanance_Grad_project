@@ -1,4 +1,37 @@
-export type UserRole = 'admin' | 'technician' | 'user'
+export type UserRole = 'admin' | 'technician' | 'user' | 'premium_user'
+
+export interface PremiumDataset {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  file_name: string
+  file_mime: string | null
+  file_size_bytes: number | null
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  created_at: string
+  updated_at: string
+}
+
+export interface PremiumPredictionRow {
+  serial_number: string
+  scanner_model: string
+  date: string
+  failure_probability_next_7d: number
+  risk_level: string
+  recommendation: string
+}
+
+export interface PremiumPrediction {
+  id: string
+  dataset_id: string
+  trained_by: string | null
+  model_branch: string
+  predictions: PremiumPredictionRow[]
+  summary: { total_devices?: number; high_risk_count?: number } | null
+  notes: string | null
+  created_at: string
+}
 
 export interface Profile {
   id: string

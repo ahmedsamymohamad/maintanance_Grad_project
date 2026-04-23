@@ -30,7 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { UserCog, Shield, Wrench, User, UserPlus, AlertCircle } from 'lucide-react'
+import { UserCog, Shield, Wrench, User, UserPlus, AlertCircle, Crown } from 'lucide-react'
+import type { UserRole } from '@/lib/types'
 
 interface UsersViewProps {
   users: any[]
@@ -47,7 +48,7 @@ export function UsersView({ users }: UsersViewProps) {
   const [createEmail, setCreateEmail] = useState('')
   const [createFullName, setCreateFullName] = useState('')
   const [createPassword, setCreatePassword] = useState('')
-  const [createRole, setCreateRole] = useState<'admin' | 'technician' | 'user'>('technician')
+  const [createRole, setCreateRole] = useState<UserRole>('technician')
   const router = useRouter()
 
   const resetCreateForm = () => {
@@ -85,7 +86,7 @@ export function UsersView({ users }: UsersViewProps) {
     if (!selectedUser || !newRole) return
     setLoading(true)
 
-    const result = await updateUserRole(selectedUser.id, newRole as 'admin' | 'technician' | 'user')
+    const result = await updateUserRole(selectedUser.id, newRole as UserRole)
 
     if (result?.error) {
       setLoading(false)
@@ -100,9 +101,10 @@ export function UsersView({ users }: UsersViewProps) {
   }
 
   const roleConfig: Record<string, { color: string; icon: React.ReactNode }> = {
-    admin: { color: 'bg-purple-100 text-purple-800', icon: <Shield className="h-3 w-3" /> },
-    technician: { color: 'bg-blue-100 text-blue-800', icon: <Wrench className="h-3 w-3" /> },
-    user: { color: 'bg-gray-100 text-gray-800', icon: <User className="h-3 w-3" /> },
+    admin: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200', icon: <Shield className="h-3 w-3" /> },
+    technician: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200', icon: <Wrench className="h-3 w-3" /> },
+    user: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200', icon: <User className="h-3 w-3" /> },
+    premium_user: { color: 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200', icon: <Crown className="h-3 w-3" /> },
   }
 
   return (
@@ -195,6 +197,7 @@ export function UsersView({ users }: UsersViewProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">User (Device Owner)</SelectItem>
+                  <SelectItem value="premium_user">Premium User (Dataset Upload)</SelectItem>
                   <SelectItem value="technician">Technician</SelectItem>
                   <SelectItem value="admin">Administrator</SelectItem>
                 </SelectContent>
@@ -263,12 +266,13 @@ export function UsersView({ users }: UsersViewProps) {
             </Field>
             <Field>
               <FieldLabel>Role</FieldLabel>
-              <Select value={createRole} onValueChange={(value) => setCreateRole(value as 'admin' | 'technician' | 'user')}>
+              <Select value={createRole} onValueChange={(value) => setCreateRole(value as UserRole)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">User (Device Owner)</SelectItem>
+                  <SelectItem value="premium_user">Premium User (Dataset Upload)</SelectItem>
                   <SelectItem value="technician">Technician</SelectItem>
                   <SelectItem value="admin">Administrator</SelectItem>
                 </SelectContent>

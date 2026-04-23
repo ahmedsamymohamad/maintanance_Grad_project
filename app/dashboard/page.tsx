@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard'
 import { TechnicianDashboard } from '@/components/dashboard/technician-dashboard'
 import { UserDashboard } from '@/components/dashboard/user-dashboard'
+import { PremiumUserDashboard } from '@/components/dashboard/premium-user-dashboard'
 
 export default async function DashboardPage() {
   try {
@@ -37,6 +38,11 @@ export default async function DashboardPage() {
     if (profile.role === 'technician') {
       console.log('[DashboardPage] Rendering TechnicianDashboard')
       return <TechnicianDashboard technicianId={user.id} technicianEmail={user.email} />
+    }
+
+    if (profile.role === 'premium_user') {
+      console.log('[DashboardPage] Rendering PremiumUserDashboard')
+      return <PremiumUserDashboard userId={user.id} />
     }
 
     console.log('[DashboardPage] Rendering UserDashboard')

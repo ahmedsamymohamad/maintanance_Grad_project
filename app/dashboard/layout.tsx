@@ -42,7 +42,7 @@ export default async function DashboardLayout({
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
         <DashboardNav profile={profile} />
         <main className="container mx-auto p-6 lg:p-8">{children}</main>
-        {profile.role == "user" ? <ChatbotWrapper /> : null}
+        {profile.role === "user" || profile.role === "premium_user" ? <ChatbotWrapper /> : null}
       </div>
     );
   } catch (error) {

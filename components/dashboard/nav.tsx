@@ -24,6 +24,8 @@ import {
   Brain,
   LogOut,
   User,
+  Database,
+  Crown,
 } from "lucide-react";
 import type { Profile } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -41,6 +43,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
     { href: "/dashboard/requests", label: "Requests", icon: ClipboardList },
     { href: "/dashboard/tasks", label: "Tasks", icon: Cpu },
     { href: "/dashboard/inventory", label: "Inventory", icon: Package },
+    { href: "/dashboard/datasets", label: "Premium Data", icon: Database },
     { href: "/dashboard/users", label: "Users", icon: Users },
   ];
 
@@ -59,12 +62,25 @@ export function DashboardNav({ profile }: DashboardNavProps) {
     },
   ];
 
+  const premiumLinks = [
+    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard/my-datasets", label: "My Datasets", icon: Database },
+    { href: "/dashboard/my-devices", label: "My Devices", icon: Cpu },
+    {
+      href: "/dashboard/my-requests",
+      label: "My Requests",
+      icon: ClipboardList,
+    },
+  ];
+
   const links =
     profile.role === "admin"
       ? adminLinks
       : profile.role === "technician"
         ? technicianLinks
-        : userLinks;
+        : profile.role === "premium_user"
+          ? premiumLinks
+          : userLinks;
 
   const initials =
     profile.full_name

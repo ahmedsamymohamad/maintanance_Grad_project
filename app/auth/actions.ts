@@ -7,7 +7,7 @@ import type { UserRole } from '@/lib/types'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
-const ALLOWED_ROLES: UserRole[] = ['admin', 'technician', 'user']
+const ALLOWED_ROLES: UserRole[] = ['admin', 'technician', 'user', 'premium_user']
 const AUTH_SCHEMA_ERROR = 'Auth database is not initialized. Run scripts/004_custom_auth.sql in Supabase SQL Editor, then retry.'
 
 function isMissingAuthTableError(message?: string | null) {
