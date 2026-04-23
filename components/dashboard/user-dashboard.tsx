@@ -110,7 +110,7 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
     <div className="space-y-8">
       {/* Header Section */}
       <div className="space-y-3">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-4xl font-bold tracking-tight text-${stat.color}">
           My Dashboard
         </h1>
         <p className="text-base text-slate-500 leading-relaxed">
@@ -123,19 +123,16 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card
-              key={stat.label}
-              className="border border-slate-200/50 bg-white shadow-sm hover:shadow-lg hover:border-blue-200/50 transition-all duration-300 overflow-hidden group"
-            >
+            <Card key={stat.label}>
               <div className={`h-1.5 bg-gradient-to-r ${stat.color}`}></div>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-sm font-semibold text-slate-600 mb-2">
+                    <CardTitle className="text-sm font-semibold ">
                       {stat.label}
                     </CardTitle>
                     <div className="flex items-baseline gap-2">
-                      <div className="text-5xl font-bold text-slate-900 tracking-tight">
+                      <div className="text-5xl font-bold ">
                         {stat.value}
                       </div>
                       {/* <div
@@ -172,7 +169,7 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* My Devices Section */}
-        <Card className="lg:col-span-2 border border-slate-200/50 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <Card className="lg:col-span-2 border border-slate-200/50 ">
           <div className="border-b border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-blue-50/50 px-6 py-5 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -193,14 +190,14 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
           </div>
           <CardContent className="pt-6">
             {myDevices && myDevices.length > 0 ? (
-              <div className="space-y-3">
+              <div className={`space-y-3`}>
                 {myDevices.map((device: any) => {
                   const colors =
                     statusColors[device.status] || statusColors.active;
                   return (
                     <div
                       key={device.id}
-                      className={`group relative p-4 rounded-xl border border-slate-200/50 ${colors.bg} hover:border-slate-300 transition-all duration-200 bg-opacity-70 hover:bg-opacity-100`}
+                      className={`group relative p-4 rounded-xl border border-slate-200/50  hover:border-slate-300 transition-all duration-200 bg-opacity-70 hover:bg-opacity-100`}
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4 flex-1">
@@ -212,7 +209,7 @@ export async function UserDashboard({ userId }: UserDashboardProps) {
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">
+                            <p className="font-semibold ">
                               {device.brand} {device.model}
                             </p>
                             <p className="text-sm text-slate-600 capitalize mt-0.5">

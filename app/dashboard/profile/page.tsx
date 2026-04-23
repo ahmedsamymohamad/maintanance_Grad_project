@@ -273,7 +273,7 @@ export default function ProfilePage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900">Profile Settings</h1>
+        <h1 className="text-4xl font-bold tracking-tight ">Profile Settings</h1>
         <p className="text-base text-slate-500">Manage your account information</p>
       </div>
 
@@ -290,20 +290,19 @@ export default function ProfilePage() {
       )}
 
       {/* Profile Card */}
-      <Card className="border border-slate-200/50 bg-white shadow-sm">
+      <Card className="border border-slate-200/50 shadow-sm">
         <div className="border-b border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-blue-50/50 px-6 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-bold text-slate-900 mb-1">Personal Information</CardTitle>
-              <CardDescription className="text-slate-600">Your account details and settings</CardDescription>
+              <CardTitle className="text-lg font-bold  mb-1">Personal Information</CardTitle>
+              <CardDescription className="">Your account details and settings</CardDescription>
             </div>
             <Button
               onClick={() => editing ? handleSave() : setEditing(true)}
               disabled={saving}
               className={`${
-                editing
-                  ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600'
-                  : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600'
+         'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600'
+                  
               } text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 rounded-lg`}
             >
               {saving ? (
@@ -333,9 +332,9 @@ export default function ProfilePage() {
               <User className="h-12 w-12 text-white" />
             </div>
             <div>
-              <p className="text-sm text-slate-600 mb-1">Profile Picture</p>
-              <p className="text-slate-900 font-semibold">{profile?.full_name || 'User'}</p>
-              <p className="text-xs text-slate-500 mt-1">Avatar generated from initials</p>
+              <p className="text-sm">Profile Picture</p>
+              <p className=" font-semibold">{profile?.full_name || 'User'}</p>
+              <p className="text-xs mt-1">Avatar generated from initials</p>
             </div>
           </div>
 
@@ -343,7 +342,7 @@ export default function ProfilePage() {
 
           {/* Full Name */}
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <label className="text-sm font-semibold flex items-center gap-2">
               <User className="h-4 w-4 text-blue-600" />
               Full Name
             </label>
@@ -355,35 +354,35 @@ export default function ProfilePage() {
                 className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
               />
             ) : (
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <p className="text-slate-900 font-medium">{profile?.full_name || 'Not provided'}</p>
+              <div className="p-4 border border-slate-200 rounded-lg">
+                <p className=" font-medium">{profile?.full_name || 'Not provided'}</p>
               </div>
             )}
           </div>
 
           {/* Email */}
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <label className="text-sm font-semibold flex items-center gap-2">
               <Mail className="h-4 w-4 text-amber-600" />
               Email Address
             </label>
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-              <p className="text-slate-900 font-medium break-all">{profile?.email}</p>
+            <div className="p-4 border border-slate-200 rounded-lg">
+              <p className=" font-medium break-all">{profile?.email}</p>
               <p className="text-xs text-slate-500 mt-2">Email cannot be changed</p>
             </div>
           </div>
 
           {/* Role */}
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <label className="text-sm font-semibold flex items-center gap-2">
               <Shield className="h-4 w-4 text-purple-600" />
               Account Role
             </label>
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+            <div className="p-4 border border-slate-200 rounded-lg">
               <Badge className={`${getRoleBadgeColor(profile?.role)} border-0 capitalize font-semibold text-sm px-3 py-1.5`}>
                 {profile?.role}
               </Badge>
-              <p className="text-xs text-slate-500 mt-3">
+              <p className="text-xs mt-3">
                 {profile?.role === 'admin' && 'You have full administrative access to the system'}
                 {profile?.role === 'technician' && 'You have technician access with task and maintenance capabilities'}
                 {profile?.role === 'user' && 'You have standard user access with device management capabilities'}
@@ -393,12 +392,12 @@ export default function ProfilePage() {
 
           {/* Created Date */}
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-teal-600" />
+            <label className="text-sm font-semibold  flex items-center gap-2">
+              <Calendar className="h-4 w-4 " />
               Account Created
             </label>
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-              <p className="text-slate-900 font-medium">
+            <div className="p-4  border border-slate-200 rounded-lg">
+              <p className=" font-medium">
                 {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -429,19 +428,19 @@ export default function ProfilePage() {
       </Card>
 
       {/* Security Card */}
-      <Card className="border border-slate-200/50 bg-white shadow-sm">
+      <Card className="border border-slate-200/50 shadow-sm">
         <div className="border-b border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-blue-50/50 px-6 py-5">
           <div>
-            <CardTitle className="text-lg font-bold text-slate-900 mb-1">Security & Access</CardTitle>
-            <CardDescription className="text-slate-600">Manage your account security</CardDescription>
+            <CardTitle className="text-lg font-bold ">Security & Access</CardTitle>
+            <CardDescription className="">Manage your account security</CardDescription>
           </div>
         </div>
 
         <CardContent className="pt-6 space-y-6">
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-900">Password</label>
-            <p className="text-slate-600 text-sm mb-3">Change your password to keep your account secure</p>
-            <Button variant="outline" className="border-slate-300 text-slate-600 hover:bg-slate-50 w-full sm:w-auto">
+            <label className="text-sm font-semibold ">Password</label>
+            <p className="text-sm mb-3">Change your password to keep your account secure</p>
+            <Button variant="outline" className="border-slate-300  hover:bg-slate-50 w-full sm:w-auto">
               Change Password
             </Button>
           </div>
@@ -449,9 +448,9 @@ export default function ProfilePage() {
           <div className="h-px bg-slate-200/50"></div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-900">Two-Factor Authentication</label>
-            <p className="text-slate-600 text-sm mb-3">Add an extra layer of security to your account</p>
-            <Button variant="outline" className="border-slate-300 text-slate-600 hover:bg-slate-50 w-full sm:w-auto">
+            <label className="text-sm font-semibold ">Two-Factor Authentication</label>
+            <p className=" text-sm mb-3">Add an extra layer of security to your account</p>
+            <Button variant="outline" className="border-slate-300  hover:bg-slate-50 w-full sm:w-auto">
               Enable 2FA
             </Button>
           </div>
