@@ -1,12 +1,18 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -14,158 +20,178 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
-import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { Brain, AlertTriangle, CheckCircle, Clock, Plus, Sparkles, Upload } from 'lucide-react'
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
+import {
+  Brain,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Plus,
+  Sparkles,
+  Upload,
+} from "lucide-react";
 
 interface PredictionsViewProps {
-  predictions: any[]
-  devices: any[]
-  technicians: any[]
+  predictions: any[];
+  devices: any[];
+  technicians: any[];
 }
 
-export function PredictionsView({ predictions, devices, technicians }: PredictionsViewProps) {
-  const [createTaskDialogOpen, setCreateTaskDialogOpen] = useState(false)
-  const [runPredictionDialogOpen, setRunPredictionDialogOpen] = useState(false)
-  const [uploadDatasetDialogOpen, setUploadDatasetDialogOpen] = useState(false)
-  const [selectedPrediction, setSelectedPrediction] = useState<any>(null)
-  const [selectedDevice, setSelectedDevice] = useState('')
-  const [selectedTechnician, setSelectedTechnician] = useState('')
-  const [taskDescription, setTaskDescription] = useState('')
-  const [datasetFile, setDatasetFile] = useState<File | null>(null)
-  const [datasetDeviceType, setDatasetDeviceType] = useState('')
-  const [datasetResults, setDatasetResults] = useState<any[]>([])
-  const [datasetSummary, setDatasetSummary] = useState<{ total_scanners: number; high_risk_count: number } | null>(null)
-  const [datasetError, setDatasetError] = useState<string | null>(null)
-  const [predictionError, setPredictionError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [predicting, setPredicting] = useState(false)
-  const [uploadingDataset, setUploadingDataset] = useState(false)
-  const router = useRouter()
-  const supabase = createClient()
+export function PredictionsView({
+  predictions,
+  devices,
+  technicians,
+}: PredictionsViewProps) {
+  const [createTaskDialogOpen, setCreateTaskDialogOpen] = useState(false);
+  const [runPredictionDialogOpen, setRunPredictionDialogOpen] = useState(false);
+  const [uploadDatasetDialogOpen, setUploadDatasetDialogOpen] = useState(false);
+  const [selectedPrediction, setSelectedPrediction] = useState<any>(null);
+  const [selectedDevice, setSelectedDevice] = useState("");
+  const [selectedTechnician, setSelectedTechnician] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [datasetFile, setDatasetFile] = useState<File | null>(null);
+  const [datasetDeviceType, setDatasetDeviceType] = useState("");
+  const [datasetResults, setDatasetResults] = useState<any[]>([]);
+  const [datasetSummary, setDatasetSummary] = useState<{
+    total_scanners: number;
+    high_risk_count: number;
+  } | null>(null);
+  const [datasetError, setDatasetError] = useState<string | null>(null);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [predicting, setPredicting] = useState(false);
+  const [uploadingDataset, setUploadingDataset] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
 
   const handleCreateTask = async () => {
-    if (!selectedPrediction || !selectedTechnician) return
-    setLoading(true)
+    if (!selectedPrediction || !selectedTechnician) return;
+    setLoading(true);
 
     // Create task from prediction
-    await supabase.from('tasks').insert({
+    await supabase.from("tasks").insert({
       prediction_id: selectedPrediction.id,
       device_id: selectedPrediction.device_id,
       assigned_to: selectedTechnician,
       title: `AI Prediction: ${selectedPrediction.predicted_issue}`,
       description: taskDescription || selectedPrediction.recommended_action,
-      priority: (selectedPrediction.confidence_score || 0) > 0.8 ? 'high' : (selectedPrediction.confidence_score || 0) > 0.5 ? 'medium' : 'low',
-      status: 'assigned',
-    })
+      priority:
+        (selectedPrediction.confidence_score || 0) > 0.8
+          ? "high"
+          : (selectedPrediction.confidence_score || 0) > 0.5
+            ? "medium"
+            : "low",
+      status: "assigned",
+    });
 
     // Update prediction status
     await supabase
-      .from('ai_predictions')
+      .from("ai_predictions")
       .update({ is_acknowledged: true })
-      .eq('id', selectedPrediction.id)
+      .eq("id", selectedPrediction.id);
 
-    setLoading(false)
-    setCreateTaskDialogOpen(false)
-    setSelectedTechnician('')
-    setTaskDescription('')
-    router.refresh()
-  }
+    setLoading(false);
+    setCreateTaskDialogOpen(false);
+    setSelectedTechnician("");
+    setTaskDescription("");
+    router.refresh();
+  };
 
   const handleRunPrediction = async () => {
-    if (!selectedDevice) return
-    setPredicting(true)
-    setPredictionError(null)
+    if (!selectedDevice) return;
+    setPredicting(true);
+    setPredictionError(null);
 
     try {
-      const response = await fetch('/api/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ deviceId: selectedDevice }),
-      })
+      });
 
-      const payload = await response.json().catch(() => ({}))
+      const payload = await response.json().catch(() => ({}));
 
       if (response.ok) {
-        router.refresh()
+        router.refresh();
       } else {
-        setPredictionError(payload?.error || 'Prediction save failed.')
+        setPredictionError(payload?.error || "Prediction save failed.");
       }
     } catch (error) {
-      console.error('Prediction failed:', error)
-      setPredictionError('Prediction save failed.')
+      console.error("Prediction failed:", error);
+      setPredictionError("Prediction save failed.");
     }
 
-    setPredicting(false)
-    setRunPredictionDialogOpen(false)
-    setSelectedDevice('')
-  }
+    setPredicting(false);
+    setRunPredictionDialogOpen(false);
+    setSelectedDevice("");
+  };
 
   const handleMarkResolved = async (predictionId: string) => {
-    setLoading(true)
+    setLoading(true);
     await supabase
-      .from('ai_predictions')
+      .from("ai_predictions")
       .update({ is_acknowledged: true })
-      .eq('id', predictionId)
-    setLoading(false)
-    router.refresh()
-  }
+      .eq("id", predictionId);
+    setLoading(false);
+    router.refresh();
+  };
 
   const handleDatasetUpload = async () => {
-    if (!datasetFile) return
+    if (!datasetFile) return;
 
-    setUploadingDataset(true)
-    setDatasetError(null)
+    setUploadingDataset(true);
+    setDatasetError(null);
 
     try {
-      const response = await fetch('/api/predict/upload', {
-        method: 'POST',
+      const response = await fetch("/api/predict/upload", {
+        method: "POST",
         headers: {
-          'Content-Type': datasetFile.type || 'application/octet-stream',
-          'x-filename': datasetFile.name,
-          'x-device-type': datasetDeviceType,
+          "Content-Type": datasetFile.type || "application/octet-stream",
+          "x-filename": datasetFile.name,
+          "x-device-type": datasetDeviceType,
         },
         body: datasetFile,
-      })
+      });
 
-      const payload = await response.json()
+      const payload = await response.json();
 
       if (!response.ok) {
-        setDatasetError(payload?.error || 'Failed to upload dataset.')
-        return
+        setDatasetError(payload?.error || "Failed to upload dataset.");
+        return;
       }
 
-      setDatasetResults(payload?.predictions || [])
-      setDatasetSummary(payload?.summary || null)
-      setUploadDatasetDialogOpen(false)
-      setDatasetFile(null)
-      setDatasetDeviceType('')
+      setDatasetResults(payload?.predictions || []);
+      setDatasetSummary(payload?.summary || null);
+      setUploadDatasetDialogOpen(false);
+      setDatasetFile(null);
+      setDatasetDeviceType("");
     } catch (error) {
-      console.error('Dataset upload failed:', error)
-      setDatasetError('Failed to upload dataset.')
+      console.error("Dataset upload failed:", error);
+      setDatasetError("Failed to upload dataset.");
     } finally {
-      setUploadingDataset(false)
+      setUploadingDataset(false);
     }
-  }
+  };
 
-  const pendingPredictions = predictions.filter(p => !p.is_acknowledged)
-  const acknowledgedPredictions = predictions.filter(p => p.is_acknowledged)
-  const resolvedPredictions = predictions.filter(p => p.is_acknowledged)
+  const pendingPredictions = predictions.filter((p) => !p.is_acknowledged);
+  const acknowledgedPredictions = predictions.filter((p) => p.is_acknowledged);
+  const resolvedPredictions = predictions.filter((p) => p.is_acknowledged);
 
-  const typeColors: Record<string, 'destructive' | 'secondary' | 'outline'> = {
-    failure: 'destructive',
-    maintenance: 'secondary',
-    replacement: 'outline',
-  }
+  const typeColors: Record<string, "destructive" | "secondary" | "outline"> = {
+    failure: "destructive",
+    maintenance: "secondary",
+    replacement: "outline",
+  };
 
   const PredictionCard = ({ prediction }: { prediction: any }) => (
     <Card>
@@ -182,7 +208,13 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
               {prediction.devices?.brand} {prediction.devices?.model}
             </CardDescription>
           </div>
-          <Badge variant={(prediction.confidence_score || 0) > 0.7 ? 'destructive' : 'secondary'}>
+          <Badge
+            variant={
+              (prediction.confidence_score || 0) > 0.7
+                ? "destructive"
+                : "secondary"
+            }
+          >
             {Math.round((prediction.confidence_score || 0) * 100)}% risk
           </Badge>
         </div>
@@ -194,37 +226,39 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
               {prediction.devices?.device_type}
             </span>
           </div>
-          
+
           {prediction.recommended_action && (
-            <p className="text-sm text-muted-foreground">{prediction.recommended_action}</p>
+            <p className="text-sm text-muted-foreground">
+              {prediction.recommended_action}
+            </p>
           )}
-          
+
           {prediction.predicted_failure_date && (
             <div className="text-sm">
-              <span className="text-muted-foreground">Estimated:</span>{' '}
+              <span className="text-muted-foreground">Estimated:</span>{" "}
               {new Date(prediction.predicted_failure_date).toLocaleDateString()}
             </div>
           )}
-          
+
           <div className="text-sm">
-            <span className="text-muted-foreground">Owner:</span>{' '}
-            {prediction.devices?.profiles?.full_name || 'Unknown'}
+            <span className="text-muted-foreground">Owner:</span>{" "}
+            {prediction.devices?.profiles?.full_name || "Unknown"}
           </div>
 
           <div className="flex gap-2 pt-2">
             {!prediction.is_acknowledged && (
               <>
-                <Button 
+                <Button
                   size="sm"
                   onClick={() => {
-                    setSelectedPrediction(prediction)
-                    setCreateTaskDialogOpen(true)
+                    setSelectedPrediction(prediction);
+                    setCreateTaskDialogOpen(true);
                   }}
                 >
                   Create Task
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => handleMarkResolved(prediction.id)}
                   disabled={loading}
@@ -234,8 +268,8 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
               </>
             )}
             {prediction.is_acknowledged && (
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => handleMarkResolved(prediction.id)}
                 disabled={loading}
@@ -248,18 +282,17 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   return (
     <>
       <div className="flex flex-wrap gap-2 justify-end mb-4">
-        <Button variant="outline" onClick={() => setUploadDatasetDialogOpen(true)}>
+        <Button
+          variant="outline"
+          onClick={() => setUploadDatasetDialogOpen(true)}
+        >
           <Upload className="h-4 w-4 mr-2" />
           Upload Dataset
-        </Button>
-        <Button onClick={() => setRunPredictionDialogOpen(true)}>
-          <Sparkles className="h-4 w-4 mr-2" />
-          Run AI Analysis
         </Button>
       </div>
 
@@ -278,7 +311,7 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
             <CardDescription>
               {datasetSummary
                 ? `Scanners analyzed: ${datasetSummary.total_scanners} | High/Critical risk: ${datasetSummary.high_risk_count}`
-                : 'Latest results from the uploaded dataset'}
+                : "Latest results from the uploaded dataset"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -301,11 +334,19 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
                   </thead>
                   <tbody>
                     {datasetResults.map((row, index) => (
-                      <tr key={`${row.serial_number}-${index}`} className="border-b">
+                      <tr
+                        key={`${row.serial_number}-${index}`}
+                        className="border-b"
+                      >
                         <td className="py-2 pr-2">{row.serial_number}</td>
                         <td className="py-2 pr-2">{row.scanner_model}</td>
                         <td className="py-2 pr-2">{row.date}</td>
-                        <td className="py-2 pr-2">{Math.round((row.failure_probability_next_7d || 0) * 100)}%</td>
+                        <td className="py-2 pr-2">
+                          {Math.round(
+                            (row.failure_probability_next_7d || 0) * 100,
+                          )}
+                          %
+                        </td>
                         <td className="py-2 pr-2">{row.risk_level}</td>
                         <td className="py-2">{row.recommendation}</td>
                       </tr>
@@ -337,7 +378,7 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
         <TabsContent value="pending" className="mt-4">
           {pendingPredictions.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {pendingPredictions.map(prediction => (
+              {pendingPredictions.map((prediction) => (
                 <PredictionCard key={prediction.id} prediction={prediction} />
               ))}
             </div>
@@ -354,7 +395,7 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
         <TabsContent value="acknowledged" className="mt-4">
           {acknowledgedPredictions.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {acknowledgedPredictions.map(prediction => (
+              {acknowledgedPredictions.map((prediction) => (
                 <PredictionCard key={prediction.id} prediction={prediction} />
               ))}
             </div>
@@ -371,7 +412,7 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
         <TabsContent value="resolved" className="mt-4">
           {resolvedPredictions.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {resolvedPredictions.map(prediction => (
+              {resolvedPredictions.map((prediction) => (
                 <PredictionCard key={prediction.id} prediction={prediction} />
               ))}
             </div>
@@ -387,7 +428,10 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
       </Tabs>
 
       {/* Create Task Dialog */}
-      <Dialog open={createTaskDialogOpen} onOpenChange={setCreateTaskDialogOpen}>
+      <Dialog
+        open={createTaskDialogOpen}
+        onOpenChange={setCreateTaskDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -404,13 +448,18 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
               <div className="p-3 bg-muted rounded-lg">
                 <p className="font-medium">{selectedPrediction?.component}</p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedPrediction?.devices?.brand} {selectedPrediction?.devices?.model} - {selectedPrediction?.prediction_type}
+                  {selectedPrediction?.devices?.brand}{" "}
+                  {selectedPrediction?.devices?.model} -{" "}
+                  {selectedPrediction?.prediction_type}
                 </p>
               </div>
             </Field>
             <Field>
               <FieldLabel>Assign Technician</FieldLabel>
-              <Select value={selectedTechnician} onValueChange={setSelectedTechnician}>
+              <Select
+                value={selectedTechnician}
+                onValueChange={setSelectedTechnician}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a technician" />
                 </SelectTrigger>
@@ -434,18 +483,27 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
             </Field>
           </FieldGroup>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateTaskDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setCreateTaskDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleCreateTask} disabled={!selectedTechnician || loading}>
-              {loading ? 'Creating...' : 'Create Task'}
+            <Button
+              onClick={handleCreateTask}
+              disabled={!selectedTechnician || loading}
+            >
+              {loading ? "Creating..." : "Create Task"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Run Prediction Dialog */}
-      <Dialog open={runPredictionDialogOpen} onOpenChange={setRunPredictionDialogOpen}>
+      <Dialog
+        open={runPredictionDialogOpen}
+        onOpenChange={setRunPredictionDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -466,7 +524,8 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
                 <SelectContent>
                   {devices.map((device) => (
                     <SelectItem key={device.id} value={device.id}>
-                      {device.brand} {device.model} ({device.device_type}) - {device.profiles?.full_name}
+                      {device.brand} {device.model} ({device.device_type}) -{" "}
+                      {device.profiles?.full_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -474,18 +533,27 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
             </Field>
           </FieldGroup>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRunPredictionDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setRunPredictionDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleRunPrediction} disabled={!selectedDevice || predicting}>
-              {predicting ? 'Analyzing...' : 'Run Analysis'}
+            <Button
+              onClick={handleRunPrediction}
+              disabled={!selectedDevice || predicting}
+            >
+              {predicting ? "Analyzing..." : "Run Analysis"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Upload Dataset Dialog */}
-      <Dialog open={uploadDatasetDialogOpen} onOpenChange={setUploadDatasetDialogOpen}>
+      <Dialog
+        open={uploadDatasetDialogOpen}
+        onOpenChange={setUploadDatasetDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -493,13 +561,17 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
               Upload Dataset for Model Prediction
             </DialogTitle>
             <DialogDescription>
-              Upload CSV or Excel data to run the trained model and return scanner risk predictions.
+              Upload CSV or Excel data to run the trained model and return
+              scanner risk predictions.
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
             <Field>
               <FieldLabel>Device Type (Model Branch)</FieldLabel>
-              <Select value={datasetDeviceType} onValueChange={setDatasetDeviceType}>
+              <Select
+                value={datasetDeviceType}
+                onValueChange={setDatasetDeviceType}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Choose device type" />
                 </SelectTrigger>
@@ -507,9 +579,15 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
                   <SelectItem value="branch_1">Branch 1 - Scanner</SelectItem>
                   <SelectItem value="branch_2">Branch 2 - Scanner</SelectItem>
                   <SelectItem value="branch_3">Branch 3 - Scanner</SelectItem>
-                  <SelectItem value="branch_1_printer">Branch 1 - Printer</SelectItem>
-                  <SelectItem value="branch_2_printer">Branch 2 - Printer</SelectItem>
-                  <SelectItem value="branch_3_printer">Branch 3 - Printer</SelectItem>
+                  <SelectItem value="branch_1_printer">
+                    Branch 1 - Printer
+                  </SelectItem>
+                  <SelectItem value="branch_2_printer">
+                    Branch 2 - Printer
+                  </SelectItem>
+                  <SelectItem value="branch_3_printer">
+                    Branch 3 - Printer
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </Field>
@@ -519,9 +597,9 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
                 type="file"
                 accept=".csv,.xlsx,.xls"
                 onChange={(event) => {
-                  const file = event.target.files?.[0] || null
-                  setDatasetFile(file)
-                  setDatasetError(null)
+                  const file = event.target.files?.[0] || null;
+                  setDatasetFile(file);
+                  setDatasetError(null);
                 }}
               />
             </Field>
@@ -530,15 +608,21 @@ export function PredictionsView({ predictions, devices, technicians }: Predictio
             )}
           </FieldGroup>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setUploadDatasetDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setUploadDatasetDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleDatasetUpload} disabled={!datasetFile || !datasetDeviceType || uploadingDataset}>
-              {uploadingDataset ? 'Processing...' : 'Run Model'}
+            <Button
+              onClick={handleDatasetUpload}
+              disabled={!datasetFile || !datasetDeviceType || uploadingDataset}
+            >
+              {uploadingDataset ? "Processing..." : "Run Model"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
