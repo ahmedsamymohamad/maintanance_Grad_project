@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,7 +24,25 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { Package, Plus, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Package, Plus, AlertTriangle, CheckCircle, XCircle, RotateCcw } from 'lucide-react'
+
+type CategoryFilter = 'all' | 'printer' | 'scanner' | 'shared'
+type SortField = 'name' | 'quantity' | 'unit_cost'
+type SortOrder = 'asc' | 'desc'
+
+function detectCategory(item: any): Exclude<CategoryFilter, 'all'> {
+  const haystack = `${item.category || ''} ${item.name || ''} ${item.description || ''}`.toLowerCase()
+  if (haystack.includes('printer')) return 'printer'
+  if (haystack.includes('scanner')) return 'scanner'
+  return 'shared'
+}
 
 interface InventoryViewProps {
   inventory: any[]
@@ -187,6 +205,49 @@ export function InventoryView({ inventory, partRequests }: InventoryViewProps) {
   const displayDescription = (item: any) => item.description || '-'
   const displayUnitCost = (item: any) => item.unit_price
 
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+
+  const filtersAreDefault =
+    categoryFilter === 'all' && sortField === 'name' && sortOrder === 'asc'
+
+  const resetFilters = () => {
+    setCategoryFilter('all')
+    setSortField('name')
+    setSortOrder('asc')
+  }
+
+  const visibleInventory = useMemo(() => {
+    const filtered =
+      categoryFilter === 'all'
+        ? [...inventory]
+        : inventory.filter((item) => detectCategory(item) === categoryFilter)
+
+    const dir = sortOrder === 'asc' ? 1 : -1
+
+    return filtered.sort((a, b) => {
+      if (sortField === 'name') {
+        return (
+          dir *
+          String(a.name || '').localeCompare(String(b.name || ''), undefined, {
+            sensitivity: 'base',
+            numeric: true,
+          })
+        )
+      }
+
+      if (sortField === 'quantity') {
+        return dir * ((Number(a.quantity) || 0) - (Number(b.quantity) || 0))
+      }
+
+      // unit_cost
+      const aCost = Number(a.unit_price ?? a.unit_cost ?? 0)
+      const bCost = Number(b.unit_price ?? b.unit_cost ?? 0)
+      return dir * (aCost - bCost)
+    })
+  }, [inventory, categoryFilter, sortField, sortOrder])
+
   return (
     <>
       <Tabs defaultValue="inventory">
@@ -221,6 +282,84 @@ export function InventoryView({ inventory, partRequests }: InventoryViewProps) {
               {errorMessage && (
                 <p className="text-sm text-destructive mb-4">{errorMessage}</p>
               )}
+
+              <div className="mb-5 rounded-xl border border-slate-200/70 bg-slate-50/60 p-4 backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-800/40">
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
+                  <div className="flex-1 min-w-[180px]">
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                      Filter by Category
+                    </label>
+                    <Select
+                      value={categoryFilter}
+                      onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}
+                    >
+                      <SelectTrigger className="rounded-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Items</SelectItem>
+                        <SelectItem value="printer">Printers</SelectItem>
+                        <SelectItem value="scanner">Scanners</SelectItem>
+                        <SelectItem value="shared">Shared / Universal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex-1 min-w-[160px]">
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                      Sort By
+                    </label>
+                    <Select
+                      value={sortField}
+                      onValueChange={(v) => setSortField(v as SortField)}
+                    >
+                      <SelectTrigger className="rounded-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name">Name</SelectItem>
+                        <SelectItem value="quantity">Quantity</SelectItem>
+                        <SelectItem value="unit_cost">Unit Cost</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex-1 min-w-[180px]">
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                      Order
+                    </label>
+                    <Select
+                      value={sortOrder}
+                      onValueChange={(v) => setSortOrder(v as SortOrder)}
+                    >
+                      <SelectTrigger className="rounded-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="asc">Ascending (A→Z, 0→9)</SelectItem>
+                        <SelectItem value="desc">Descending (Z→A, 9→0)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex md:items-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={resetFilters}
+                      disabled={filtersAreDefault}
+                      className="rounded-lg w-full md:w-auto"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Reset Filters
+                    </Button>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                  Showing {visibleInventory.length} of {inventory.length} items
+                </p>
+              </div>
+
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -235,7 +374,14 @@ export function InventoryView({ inventory, partRequests }: InventoryViewProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {inventory.map((item) => (
+                  {visibleInventory.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">
+                        No items match the selected filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {visibleInventory.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{displayPartName(item)}</TableCell>
                       <TableCell>{displayDescription(item)}</TableCell>
