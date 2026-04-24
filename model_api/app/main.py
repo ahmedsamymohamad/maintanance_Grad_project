@@ -361,6 +361,93 @@ def predict_latest_printers(df: pd.DataFrame, model_dict: dict[str, Any]) -> lis
     ]
 
 
+SCANNER_BRANCHES = ["branch_1", "branch_2", "branch_3"]
+PRINTER_BRANCHES = ["branch_1_printer", "branch_2_printer", "branch_3_printer"]
+
+
+@app.post("/predict/dataset/auto")
+async def predict_dataset_auto(
+    file: UploadFile = File(...),
+    device_type: str = Query(...),
+) -> dict[str, Any]:
+    """
+    Run all 3 model branches for the given device class (scanner|printer)
+    and keep, for each device, the branch that produced the highest failure
+    probability. The premium-user dataset endpoint uses this so that no
+    branch selection is required from the admin.
+    """
+    contents = await file.read()
+    dataframe = read_dataset(contents, file.filename or "dataset.csv")
+
+    normalized = (device_type or "").strip().lower()
+    if normalized in {"scanner", "scanners"}:
+        branches = SCANNER_BRANCHES
+        device_class = "scanner"
+    elif normalized in {"printer", "printers"}:
+        branches = PRINTER_BRANCHES
+        device_class = "printer"
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail="device_type must be 'scanner' or 'printer'.",
+        )
+
+    if device_class == "scanner":
+        prepared, feature_columns = prepare_inference_data(dataframe)
+    else:
+        prepared = prepare_printer_inference_data(dataframe)
+
+    per_branch_predictions: dict[str, list[dict[str, Any]]] = {}
+    for branch_key in branches:
+        model = MODEL_REGISTRY.get(branch_key)
+        if model is None:
+            continue
+        if device_class == "scanner":
+            preds = predict_latest_scanners(prepared, feature_columns, model)
+        else:
+            preds = predict_latest_printers(prepared, model)
+        per_branch_predictions[branch_key] = preds
+
+    if not per_branch_predictions:
+        raise HTTPException(
+            status_code=500,
+            detail=f"No models are loaded for {device_class}.",
+        )
+
+    # For each device serial, keep the highest failure probability across the
+    # 3 branches and remember which branch produced it.
+    best_per_serial: dict[str, dict[str, Any]] = {}
+    for branch_key, preds in per_branch_predictions.items():
+        for row in preds:
+            serial = row["serial_number"]
+            current = best_per_serial.get(serial)
+            if (
+                current is None
+                or row["failure_probability_next_7d"] > current["failure_probability_next_7d"]
+            ):
+                best_per_serial[serial] = {**row, "best_branch": branch_key}
+
+    final_predictions = sorted(
+        best_per_serial.values(),
+        key=lambda item: item["failure_probability_next_7d"],
+        reverse=True,
+    )
+
+    return {
+        "success": True,
+        "device_type": device_class,
+        "branches_used": list(per_branch_predictions.keys()),
+        "predictions": final_predictions,
+        "summary": {
+            "total_devices": len(final_predictions),
+            "high_risk_count": sum(
+                1 for item in final_predictions if item["risk_level"] in {"High", "Critical"}
+            ),
+            "branches_used": list(per_branch_predictions.keys()),
+        },
+    }
+
+
 @app.post("/predict/dataset")
 async def predict_dataset(
     file: UploadFile = File(...),

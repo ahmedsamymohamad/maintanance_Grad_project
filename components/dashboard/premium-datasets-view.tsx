@@ -16,7 +16,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Crown, Database, Upload, Sparkles, FileSpreadsheet, AlertCircle } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Crown, Database, Upload, Sparkles, FileSpreadsheet, AlertCircle, Printer, ScanLine } from 'lucide-react'
+
+type DeviceType = '' | 'scanner' | 'printer'
 
 interface Props {
   datasets: any[]
@@ -35,6 +44,7 @@ export function PremiumDatasetsView({ datasets, predictionsByDataset }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [deviceType, setDeviceType] = useState<DeviceType>('')
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -43,13 +53,14 @@ export function PremiumDatasetsView({ datasets, predictionsByDataset }: Props) {
   const reset = () => {
     setName('')
     setDescription('')
+    setDeviceType('')
     setFile(null)
     setError(null)
   }
 
   const handleUpload = async () => {
-    if (!file || !name.trim()) {
-      setError('Please provide a name and select a file.')
+    if (!file || !name.trim() || !deviceType) {
+      setError('Please provide a name, choose Scanner or Printer, and select a file.')
       return
     }
     setUploading(true)
@@ -58,6 +69,7 @@ export function PremiumDatasetsView({ datasets, predictionsByDataset }: Props) {
       const fd = new FormData()
       fd.append('name', name.trim())
       fd.append('description', description.trim())
+      fd.append('device_type', deviceType)
       fd.append('file', file, file.name)
 
       const res = await fetch('/api/datasets', { method: 'POST', body: fd })
@@ -127,6 +139,16 @@ export function PremiumDatasetsView({ datasets, predictionsByDataset }: Props) {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
+                      {d.device_type && (
+                        <Badge variant="outline" className="capitalize">
+                          {d.device_type === 'printer' ? (
+                            <Printer className="h-3 w-3 mr-1" />
+                          ) : (
+                            <ScanLine className="h-3 w-3 mr-1" />
+                          )}
+                          {d.device_type}
+                        </Badge>
+                      )}
                       <Badge className={statusBadge[d.status] || ''}>{d.status}</Badge>
                       {predictions.length > 0 && (
                         <Button
@@ -171,6 +193,7 @@ export function PremiumDatasetsView({ datasets, predictionsByDataset }: Props) {
                                   <th className="py-2 pr-2">Date</th>
                                   <th className="py-2 pr-2">Probability</th>
                                   <th className="py-2 pr-2">Risk</th>
+                                  <th className="py-2 pr-2">Best Branch</th>
                                   <th className="py-2">Recommendation</th>
                                 </tr>
                               </thead>
@@ -184,6 +207,9 @@ export function PremiumDatasetsView({ datasets, predictionsByDataset }: Props) {
                                       {Math.round((row.failure_probability_next_7d || 0) * 100)}%
                                     </td>
                                     <td className="py-2 pr-2">{row.risk_level}</td>
+                                    <td className="py-2 pr-2 text-xs text-slate-500">
+                                      {row.best_branch || '—'}
+                                    </td>
                                     <td className="py-2">{row.recommendation}</td>
                                   </tr>
                                 ))}
@@ -228,6 +254,31 @@ export function PremiumDatasetsView({ datasets, predictionsByDataset }: Props) {
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. May Branch 1 Telemetry" />
             </Field>
             <Field>
+              <FieldLabel>Device Type</FieldLabel>
+              <Select value={deviceType} onValueChange={(v) => setDeviceType(v as DeviceType)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose Scanner or Printer" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="scanner">
+                    <span className="inline-flex items-center gap-2">
+                      <ScanLine className="h-4 w-4" />
+                      Scanner
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="printer">
+                    <span className="inline-flex items-center gap-2">
+                      <Printer className="h-4 w-4" />
+                      Printer
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">
+                The admin will run all 3 model branches for this device type and keep the best (highest failure probability) per device.
+              </p>
+            </Field>
+            <Field>
               <FieldLabel>Description (optional)</FieldLabel>
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's in this dataset?" rows={3} />
             </Field>
@@ -248,7 +299,7 @@ export function PremiumDatasetsView({ datasets, predictionsByDataset }: Props) {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleUpload} disabled={uploading || !file || !name.trim()}>
+            <Button onClick={handleUpload} disabled={uploading || !file || !name.trim() || !deviceType}>
               {uploading ? 'Uploading...' : 'Upload'}
             </Button>
           </DialogFooter>

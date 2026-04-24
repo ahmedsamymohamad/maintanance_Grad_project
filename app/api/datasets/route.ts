@@ -24,8 +24,13 @@ export async function POST(request: Request) {
     const name = ((form.get('name') as string) || '').trim()
     const description = ((form.get('description') as string) || '').trim() || null
     const file = form.get('file')
+    const deviceTypeRaw = ((form.get('device_type') as string) || '').trim().toLowerCase()
+    const deviceType = deviceTypeRaw === 'printer' ? 'printer' : deviceTypeRaw === 'scanner' ? 'scanner' : ''
 
     if (!name) return Response.json({ error: 'Dataset name is required.' }, { status: 400 })
+    if (!deviceType) {
+      return Response.json({ error: 'Please choose Scanner or Printer for this dataset.' }, { status: 400 })
+    }
     if (!(file instanceof File)) {
       return Response.json({ error: 'Dataset file is required.' }, { status: 400 })
     }
@@ -50,6 +55,7 @@ export async function POST(request: Request) {
         user_id: user.id,
         name,
         description,
+        device_type: deviceType,
         file_name: file.name,
         file_mime: file.type || 'application/octet-stream',
         file_size_bytes: buffer.byteLength,
@@ -77,7 +83,7 @@ export async function GET() {
   const supabase = createServiceRoleClient()
   let query = supabase
     .from('premium_datasets')
-    .select('id, user_id, name, description, file_name, file_mime, file_size_bytes, status, created_at, updated_at')
+    .select('id, user_id, name, description, device_type, file_name, file_mime, file_size_bytes, status, created_at, updated_at')
     .order('created_at', { ascending: false })
 
   if (user.role !== 'admin') {

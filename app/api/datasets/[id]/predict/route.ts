@@ -10,6 +10,7 @@ interface PredictionRow {
   failure_probability_next_7d: number
   risk_level: string
   recommendation: string
+  best_branch?: string
 }
 
 export async function POST(
@@ -25,12 +26,7 @@ export async function POST(
 
     const { id } = await context.params
     const body = await request.json().catch(() => ({}))
-    const modelBranch = (body?.model_branch || '').toString().trim()
     const notes = body?.notes ? String(body.notes) : null
-
-    if (!modelBranch) {
-      return Response.json({ error: 'model_branch is required.' }, { status: 400 })
-    }
 
     const supabase = createServiceRoleClient()
 
@@ -44,6 +40,9 @@ export async function POST(
       return Response.json({ error: 'Dataset not found.' }, { status: 404 })
     }
 
+    const deviceType =
+      (dataset.device_type || '').toLowerCase() === 'printer' ? 'printer' : 'scanner'
+
     await supabase
       .from('premium_datasets')
       .update({ status: 'processing', updated_at: new Date().toISOString() })
@@ -55,8 +54,8 @@ export async function POST(
       const file = new File([blob], dataset.file_name, { type: dataset.file_mime || 'application/octet-stream' })
 
       const modelApiUrl = process.env.MODEL_API_URL || 'http://127.0.0.1:8000'
-      const url = new URL('/predict/dataset', modelApiUrl)
-      url.searchParams.set('device_type', modelBranch)
+      const url = new URL('/predict/dataset/auto', modelApiUrl)
+      url.searchParams.set('device_type', deviceType)
 
       const fwd = new FormData()
       fwd.append('file', file, dataset.file_name)
@@ -76,17 +75,23 @@ export async function POST(
       }
 
       const predictions: PredictionRow[] = parsed?.predictions ?? []
+      const branchesUsed: string[] = parsed?.branches_used ?? []
       const summary = parsed?.summary ?? {
         total_devices: predictions.length,
         high_risk_count: predictions.filter(
           (p) => (p.failure_probability_next_7d ?? 0) >= 0.6,
         ).length,
+        branches_used: branchesUsed,
       }
+
+      const modelBranchLabel = `best_of_3 (${deviceType}${
+        branchesUsed.length ? `: ${branchesUsed.join(', ')}` : ''
+      })`
 
       const { error: insertError } = await supabase.from('premium_predictions').insert({
         dataset_id: id,
         trained_by: user.id,
-        model_branch: modelBranch,
+        model_branch: modelBranchLabel,
         predictions,
         summary,
         notes,
@@ -105,7 +110,7 @@ export async function POST(
         .update({ status: 'completed', updated_at: new Date().toISOString() })
         .eq('id', id)
 
-      return Response.json({ success: true, predictions, summary })
+      return Response.json({ success: true, predictions, summary, device_type: deviceType })
     } catch (innerError: any) {
       await supabase
         .from('premium_datasets')

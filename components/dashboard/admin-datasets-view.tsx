@@ -14,15 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { Database, Sparkles, AlertCircle, Crown, FileSpreadsheet } from 'lucide-react'
+import { Database, Sparkles, AlertCircle, Crown, FileSpreadsheet, Printer, ScanLine } from 'lucide-react'
 
 interface Props {
   datasets: any[]
@@ -36,40 +29,29 @@ const statusBadge: Record<string, string> = {
   failed: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
 }
 
-const BRANCH_OPTIONS = [
-  { value: 'branch_1', label: 'Branch 1 - Scanner' },
-  { value: 'branch_2', label: 'Branch 2 - Scanner' },
-  { value: 'branch_3', label: 'Branch 3 - Scanner' },
-  { value: 'branch_1_printer', label: 'Branch 1 - Printer' },
-  { value: 'branch_2_printer', label: 'Branch 2 - Printer' },
-  { value: 'branch_3_printer', label: 'Branch 3 - Printer' },
-]
-
 export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
   const router = useRouter()
   const [selected, setSelected] = useState<any>(null)
-  const [branch, setBranch] = useState('')
   const [notes, setNotes] = useState('')
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
 
   const handleRun = async () => {
-    if (!selected || !branch) return
+    if (!selected) return
     setRunning(true)
     setError(null)
     try {
       const res = await fetch(`/api/datasets/${selected.id}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model_branch: branch, notes: notes.trim() || null }),
+        body: JSON.stringify({ notes: notes.trim() || null }),
       })
       const payload = await res.json().catch(() => ({}))
       if (!res.ok) {
         setError(payload?.error || 'Failed to run model.')
       } else {
         setSelected(null)
-        setBranch('')
         setNotes('')
         router.refresh()
       }
@@ -80,6 +62,9 @@ export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
     }
   }
 
+  const selectedDeviceType =
+    (selected?.device_type || '').toLowerCase() === 'printer' ? 'printer' : 'scanner'
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -89,7 +74,7 @@ export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Premium User Datasets</h1>
         <p className="text-slate-500 dark:text-slate-400">
-          Review datasets uploaded by premium users and run the predictive model on their data.
+          Run the predictive model on datasets uploaded by premium users. The system tests all 3 model branches for the dataset's device type and keeps the highest failure probability for every device.
         </p>
       </div>
 
@@ -105,6 +90,8 @@ export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
           {datasets.map((d) => {
             const predictions = predictionsByDataset[d.id] || []
             const isOpen = openId === d.id
+            const deviceType =
+              (d.device_type || '').toLowerCase() === 'printer' ? 'printer' : 'scanner'
             return (
               <Card key={d.id}>
                 <CardHeader className="pb-3">
@@ -126,16 +113,25 @@ export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="capitalize">
+                        {deviceType === 'printer' ? (
+                          <Printer className="h-3 w-3 mr-1" />
+                        ) : (
+                          <ScanLine className="h-3 w-3 mr-1" />
+                        )}
+                        {deviceType}
+                      </Badge>
                       <Badge className={statusBadge[d.status] || ''}>{d.status}</Badge>
                       <Button
                         size="sm"
                         onClick={() => {
                           setSelected(d)
+                          setNotes('')
                           setError(null)
                         }}
                       >
                         <Sparkles className="h-4 w-4 mr-1" />
-                        Train & Predict
+                        Run Predictions
                       </Button>
                       {predictions.length > 0 && (
                         <Button
@@ -177,6 +173,7 @@ export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
                                   <th className="py-2 pr-2">Date</th>
                                   <th className="py-2 pr-2">Probability</th>
                                   <th className="py-2 pr-2">Risk</th>
+                                  <th className="py-2 pr-2">Best Branch</th>
                                   <th className="py-2">Recommendation</th>
                                 </tr>
                               </thead>
@@ -190,6 +187,9 @@ export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
                                       {Math.round((row.failure_probability_next_7d || 0) * 100)}%
                                     </td>
                                     <td className="py-2 pr-2">{row.risk_level}</td>
+                                    <td className="py-2 pr-2 text-xs text-slate-500">
+                                      {row.best_branch || '—'}
+                                    </td>
                                     <td className="py-2">{row.recommendation}</td>
                                   </tr>
                                 ))}
@@ -214,25 +214,31 @@ export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
-              Train &amp; Predict on Dataset
+              Run Predictions
             </DialogTitle>
             <DialogDescription>
-              Run the trained predictive model on <span className="font-medium">{selected?.name}</span>. The results will be saved and shown to the premium user.
+              Run the predictive model on <span className="font-medium">{selected?.name}</span>.
+              All 3 <span className="font-medium">{selectedDeviceType}</span> model branches will be tested and the highest failure probability per device will be saved.
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
             <Field>
-              <FieldLabel>Model Branch</FieldLabel>
-              <Select value={branch} onValueChange={setBranch}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose model branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BRANCH_OPTIONS.map((b) => (
-                    <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FieldLabel>Detected Device Type</FieldLabel>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="capitalize">
+                  {selectedDeviceType === 'printer' ? (
+                    <Printer className="h-3 w-3 mr-1" />
+                  ) : (
+                    <ScanLine className="h-3 w-3 mr-1" />
+                  )}
+                  {selectedDeviceType}
+                </Badge>
+                <span className="text-xs text-slate-500">
+                  {selectedDeviceType === 'printer'
+                    ? 'Will run branch_1_printer, branch_2_printer, branch_3_printer'
+                    : 'Will run branch_1, branch_2, branch_3'}
+                </span>
+              </div>
             </Field>
             <Field>
               <FieldLabel>Notes for the user (optional)</FieldLabel>
@@ -247,8 +253,8 @@ export function AdminDatasetsView({ datasets, predictionsByDataset }: Props) {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setSelected(null)}>Cancel</Button>
-            <Button onClick={handleRun} disabled={running || !branch}>
-              {running ? 'Running model...' : 'Run Model'}
+            <Button onClick={handleRun} disabled={running}>
+              {running ? 'Running models...' : 'Run Predictions'}
             </Button>
           </DialogFooter>
         </DialogContent>
