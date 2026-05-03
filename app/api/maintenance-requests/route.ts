@@ -46,6 +46,26 @@ export async function POST(request: Request) {
       }
     }
 
+    if (scheduledDate) {
+      const { data: existingRequest, error: existingRequestError } = await supabase
+        .from('maintenance_requests')
+        .select('id')
+        .eq('scheduled_date', scheduledDate)
+        .neq('status', 'cancelled')
+        .maybeSingle()
+
+      if (existingRequestError) {
+        return Response.json({ error: existingRequestError.message }, { status: 500 })
+      }
+
+      if (existingRequest) {
+        return Response.json(
+          { error: 'That date is already booked. Please choose another date.' },
+          { status: 409 },
+        )
+      }
+    }
+
     const { data: insertedRequest, error: requestError } = await supabase
       .from('maintenance_requests')
       .insert({

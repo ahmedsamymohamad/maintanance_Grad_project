@@ -265,7 +265,10 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
                   <Calendar
                     mode="single"
                     selected={scheduledDate}
-                    onSelect={(d) => { setScheduledDate(d); setCalOpen(false) }}
+                    onSelect={(d) => {
+                      setScheduledDate(d)
+                      setCalOpen(false)
+                    }}
                     disabled={(date) => date < today}
                     initialFocus
                   />

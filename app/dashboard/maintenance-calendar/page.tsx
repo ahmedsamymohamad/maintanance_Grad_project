@@ -31,6 +31,12 @@ export default async function MaintenanceCalendarPage() {
     console.error('Maintenance calendar load error:', error.message)
   }
 
+  const normalizedBookings = (bookings || []).map((booking) => ({
+    ...booking,
+    devices: Array.isArray(booking.devices) ? booking.devices[0] : booking.devices,
+    profiles: Array.isArray(booking.profiles) ? booking.profiles[0] : booking.profiles,
+  }))
+
   return (
     <div className="space-y-6">
       <div>
@@ -44,7 +50,7 @@ export default async function MaintenanceCalendarPage() {
             : 'Your scheduled maintenance bookings.'}
         </p>
       </div>
-      <MaintenanceCalendarView bookings={bookings || []} />
+      <MaintenanceCalendarView bookings={normalizedBookings} />
     </div>
   )
 }
