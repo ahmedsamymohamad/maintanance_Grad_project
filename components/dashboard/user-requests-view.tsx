@@ -20,26 +20,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { Plus, ClipboardList, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, ClipboardList, Clock, CheckCircle, XCircle, CalendarDays } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface UserRequestsViewProps {
   requests: any[]
   devices: any[]
 }
 
+function toLocalDateStr(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  
+
   // Form state
   const [selectedDevice, setSelectedDevice] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [priority, setPriority] = useState('medium')
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined)
+  const [calOpen, setCalOpen] = useState(false)
 
   const router = useRouter()
 
@@ -56,6 +65,7 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
         title,
         description,
         priority,
+        scheduled_date: scheduledDate ? toLocalDateStr(scheduledDate) : null,
       }),
     })
 
@@ -77,6 +87,7 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
     setTitle('')
     setDescription('')
     setPriority('medium')
+    setScheduledDate(undefined)
   }
 
   const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
@@ -91,6 +102,9 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
     medium: 'secondary',
     low: 'outline',
   }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   return (
     <>
@@ -121,21 +135,35 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
                       {request.devices?.brand} {request.devices?.model} ({request.devices?.device_type})
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant={priorityColors[request.priority]}>{request.priority}</Badge>
-                    <Badge className={statusConfig[request.status].color}>
-                      <span className="flex items-center gap-1">
-                        {statusConfig[request.status].icon}
-                        {request.status}
-                      </span>
-                    </Badge>
+                    {statusConfig[request.status] && (
+                      <Badge className={statusConfig[request.status].color}>
+                        <span className="flex items-center gap-1">
+                          {statusConfig[request.status].icon}
+                          {request.status}
+                        </span>
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-3">{request.description}</p>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span>Submitted: {new Date(request.created_at).toLocaleDateString()}</span>
+                  {request.scheduled_date && (
+                    <span className="flex items-center gap-1 text-blue-600 font-semibold">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      Booked:{' '}
+                      {new Date(request.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  )}
                   {request.reviewed_at && (
                     <span>Reviewed: {new Date(request.reviewed_at).toLocaleDateString()}</span>
                   )}
@@ -163,11 +191,11 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
       )}
 
       {/* Submit Request Dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
+      <Dialog open={addDialogOpen} onOpenChange={(o) => { setAddDialogOpen(o); if (!o) resetForm() }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Submit Maintenance Request</DialogTitle>
-            <DialogDescription>Describe the issue with your device</DialogDescription>
+            <DialogDescription>Describe the issue with your device and pick a preferred date for maintenance.</DialogDescription>
           </DialogHeader>
           <FieldGroup>
             <Field>
@@ -187,10 +215,10 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
             </Field>
             <Field>
               <FieldLabel>Issue Title *</FieldLabel>
-              <Input 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                placeholder="e.g., Paper jam, Print quality issues" 
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g., Paper jam, Print quality issues"
               />
             </Field>
             <Field>
@@ -199,7 +227,7 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the issue in detail..."
-                rows={4}
+                rows={3}
               />
             </Field>
             <Field>
@@ -216,9 +244,52 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
                 </SelectContent>
               </Select>
             </Field>
+            <Field>
+              <FieldLabel>Preferred Maintenance Date (optional)</FieldLabel>
+              <Popover open={calOpen} onOpenChange={setCalOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !scheduledDate && 'text-muted-foreground',
+                    )}
+                  >
+                    <CalendarDays className="h-4 w-4 mr-2" />
+                    {scheduledDate
+                      ? scheduledDate.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })
+                      : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={scheduledDate}
+                    onSelect={(d) => { setScheduledDate(d); setCalOpen(false) }}
+                    disabled={(date) => date < today}
+                    initialFocus
+                  />
+                  {scheduledDate && (
+                    <div className="p-3 pt-0 border-t">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-muted-foreground"
+                        onClick={() => { setScheduledDate(undefined); setCalOpen(false) }}
+                      >
+                        Clear date
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+              <p className="text-xs text-muted-foreground mt-1">
+                Choose the date you would prefer the maintenance to happen.
+              </p>
+            </Field>
           </FieldGroup>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setAddDialogOpen(false); resetForm(); }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setAddDialogOpen(false); resetForm() }}>Cancel</Button>
             <Button onClick={handleSubmitRequest} disabled={!selectedDevice || !title || !description || loading}>
               {loading ? 'Submitting...' : 'Submit Request'}
             </Button>

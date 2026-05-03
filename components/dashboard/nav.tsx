@@ -26,6 +26,7 @@ import {
   User,
   Database,
   Crown,
+  CalendarCheck,
 } from "lucide-react";
 import type { Profile } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/predictions", label: "AI Predictions", icon: Brain },
     { href: "/dashboard/requests", label: "Requests", icon: ClipboardList },
+    { href: "/dashboard/maintenance-calendar", label: "Calendar", icon: CalendarCheck },
     { href: "/dashboard/tasks", label: "Tasks", icon: Cpu },
     { href: "/dashboard/inventory", label: "Inventory", icon: Package },
     { href: "/dashboard/datasets", label: "Premium Data", icon: Database },
@@ -50,6 +52,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
   const technicianLinks = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/my-tasks", label: "My Tasks", icon: ClipboardList },
+    { href: "/dashboard/maintenance-calendar", label: "Calendar", icon: CalendarCheck },
   ];
 
   const userLinks = [
@@ -60,6 +63,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
       label: "My Requests",
       icon: ClipboardList,
     },
+    { href: "/dashboard/maintenance-calendar", label: "Calendar", icon: CalendarCheck },
   ];
 
   const premiumLinks = [
@@ -71,6 +75,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
       label: "My Requests",
       icon: ClipboardList,
     },
+    { href: "/dashboard/maintenance-calendar", label: "Calendar", icon: CalendarCheck },
   ];
 
   const links =

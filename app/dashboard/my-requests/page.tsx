@@ -14,6 +14,7 @@ export default async function MyRequestsPage() {
     `)
     .eq('requested_by', user.id)
     .order('created_at', { ascending: false })
+    
 
   const { data: devices, error: devicesError } = await supabase
     .from('devices')

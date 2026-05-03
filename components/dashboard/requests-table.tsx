@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
-import { CheckCircle, XCircle, Eye, UserPlus } from 'lucide-react'
+import { CheckCircle, XCircle, Eye, UserPlus, CalendarDays } from 'lucide-react'
 
 interface RequestsTableProps {
   requests: any[]
@@ -123,7 +123,8 @@ export function RequestsTable({ requests, technicians }: RequestsTableProps) {
               <TableHead>User</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>Submitted</TableHead>
+              <TableHead>Booked Date</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -169,8 +170,22 @@ export function RequestsTable({ requests, technicians }: RequestsTableProps) {
                       {request.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {new Date(request.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {request.scheduled_date ? (
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                        <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                        {new Date(request.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -245,6 +260,20 @@ export function RequestsTable({ requests, technicians }: RequestsTableProps) {
                   {selectedRequest?.priority}
                 </Badge>
               </div>
+              {selectedRequest?.scheduled_date && (
+                <div className="col-span-2">
+                  <p className="text-sm font-medium text-muted-foreground">Preferred Maintenance Date</p>
+                  <p className="flex items-center gap-1.5 text-blue-600 font-semibold mt-0.5">
+                    <CalendarDays className="h-4 w-4" />
+                    {new Date(selectedRequest.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>

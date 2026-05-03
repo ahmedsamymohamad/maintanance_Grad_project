@@ -37,6 +37,15 @@ export async function POST(request: Request) {
     const allowedPriorities = new Set(['low', 'medium', 'high', 'urgent'])
     const priority = allowedPriorities.has(normalizedPriority) ? normalizedPriority : 'medium'
 
+    // Validate scheduled_date if provided
+    let scheduledDate: string | null = null
+    if (payload.scheduled_date && typeof payload.scheduled_date === 'string') {
+      const parsed = new Date(payload.scheduled_date + 'T00:00:00')
+      if (!isNaN(parsed.getTime())) {
+        scheduledDate = payload.scheduled_date.slice(0, 10) // YYYY-MM-DD
+      }
+    }
+
     const { data: insertedRequest, error: requestError } = await supabase
       .from('maintenance_requests')
       .insert({
@@ -45,6 +54,7 @@ export async function POST(request: Request) {
         title: String(payload.title).trim(),
         description: String(payload.description).trim(),
         priority,
+        scheduled_date: scheduledDate,
         status: 'pending',
       })
       .select('*')
