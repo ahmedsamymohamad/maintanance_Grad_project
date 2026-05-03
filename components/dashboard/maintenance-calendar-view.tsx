@@ -1,16 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { ChevronLeft, ChevronRight, CalendarCheck, Clock, Cpu } from 'lucide-react'
+import { CalendarCheck, Clock, Cpu } from 'lucide-react'
 
 interface MaintenanceBooking {
   id: string
   title: string
   scheduled_date: string
+  scheduled_time?: string | null
   status: string
   priority: string
   devices?: { brand: string; model: string; device_type: string }
@@ -42,28 +42,30 @@ function toLocalDateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function formatBookingTime(time?: string | null) {
+  if (!time) return 'No time set'
+  const [hours, minutes] = time.split(':')
+  const hourNum = Number(hours)
+  const suffix = hourNum >= 12 ? 'PM' : 'AM'
+  const normalizedHour = ((hourNum + 11) % 12) + 1
+  return `${normalizedHour}:${minutes} ${suffix}`
+}
+
 export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [month, setMonth] = useState(new Date())
 
-  const bookedDateSet = new Set(bookings.map((b) => b.scheduled_date))
-
-  const bookingsOnSelected = selectedDate
-    ? bookings.filter((b) => b.scheduled_date === toLocalDateStr(selectedDate))
-    : []
-
+  const bookedDateSet = useMemo(() => new Set(bookings.map((b) => b.scheduled_date)), [bookings])
+  const bookingsOnSelected = selectedDate ? bookings.filter((b) => b.scheduled_date === toLocalDateStr(selectedDate)) : []
   const bookingsThisMonth = bookings.filter((b) => {
-    if (!b.scheduled_date) return false
-    const d = new Date(b.scheduled_date + 'T00:00:00')
+    const d = new Date(`${b.scheduled_date}T00:00:00`)
     return d.getMonth() === month.getMonth() && d.getFullYear() === month.getFullYear()
   })
-
   const today = toLocalDateStr(new Date())
 
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
-        {/* Calendar */}
         <Card className="self-start">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -78,19 +80,9 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
               onSelect={setSelectedDate}
               month={month}
               onMonthChange={setMonth}
-              modifiers={{
-                booked: (date) => bookedDateSet.has(toLocalDateStr(date)),
-              }}
+              modifiers={{ booked: (date) => bookedDateSet.has(toLocalDateStr(date)) }}
               modifiersClassNames={{
                 booked: '!bg-blue-100 !text-blue-800 !font-bold dark:!bg-blue-900/40 dark:!text-blue-200 ring-2 ring-blue-400 ring-offset-1',
-              }}
-              disabled={(date) => {
-                const d = new Date()
-                d.setHours(0, 0, 0, 0)
-                return false
-              }}
-              classNames={{
-                day: 'relative w-full h-full p-0 text-center group/day aspect-square select-none',
               }}
             />
             <div className="flex items-center gap-2 mt-3 px-1 text-xs text-slate-500">
@@ -100,7 +92,6 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
           </CardContent>
         </Card>
 
-        {/* Bookings panel */}
         <div className="space-y-4">
           {selectedDate ? (
             <>
@@ -125,7 +116,7 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
                   <CardContent className="py-10 flex flex-col items-center text-slate-400 text-center">
                     <CalendarCheck className="h-10 w-10 mb-2 opacity-40" />
                     <p className="font-medium">No maintenance scheduled</p>
-                    <p className="text-sm mt-1">Submit a request from My Requests to book a date.</p>
+                    <p className="text-sm mt-1">Submit a request from My Requests to book a date and time.</p>
                   </CardContent>
                 </Card>
               )}
@@ -133,9 +124,7 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
           ) : (
             <>
               <div>
-                <h2 className="text-lg font-semibold">
-                  {month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                </h2>
+                <h2 className="text-lg font-semibold">{month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
                 <p className="text-sm text-slate-500">
                   {bookingsThisMonth.length === 0
                     ? 'No bookings this month'
@@ -145,7 +134,7 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
               {bookingsThisMonth.length > 0 ? (
                 <div className="space-y-3">
                   {bookingsThisMonth
-                    .sort((a, b) => (a.scheduled_date > b.scheduled_date ? 1 : -1))
+                    .sort((a, b) => `${a.scheduled_date} ${a.scheduled_time || ''}`.localeCompare(`${b.scheduled_date} ${b.scheduled_time || ''}`))
                     .map((b) => (
                       <BookingCard key={b.id} booking={b} showDate />
                     ))}
@@ -164,7 +153,6 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
         </div>
       </div>
 
-      {/* Upcoming summary */}
       {bookings.filter((b) => b.scheduled_date && b.scheduled_date >= today).length > 0 && (
         <Card>
           <CardHeader className="pb-2">
@@ -177,7 +165,7 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {bookings
                 .filter((b) => b.scheduled_date && b.scheduled_date >= today)
-                .sort((a, b) => (a.scheduled_date > b.scheduled_date ? 1 : -1))
+                .sort((a, b) => `${a.scheduled_date} ${a.scheduled_time || ''}`.localeCompare(`${b.scheduled_date} ${b.scheduled_time || ''}`))
                 .map((b) => (
                   <div key={b.id} className="flex items-start gap-3 p-3 rounded-lg border bg-slate-50/60 dark:bg-slate-900/30">
                     <div className="shrink-0 mt-0.5">
@@ -190,16 +178,15 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
                         {b.profiles?.full_name ? ` · ${b.profiles.full_name}` : ''}
                       </p>
                       <p className="text-xs font-semibold text-blue-600 mt-1">
-                        {new Date(b.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', {
+                        {new Date(`${b.scheduled_date}T00:00:00`).toLocaleDateString('en-US', {
                           weekday: 'short',
                           month: 'short',
                           day: 'numeric',
                         })}
+                        {b.scheduled_time ? ` · ${formatBookingTime(b.scheduled_time)}` : ''}
                       </p>
                     </div>
-                    <Badge className={`shrink-0 ml-auto text-xs ${statusColors[b.status] || ''}`}>
-                      {b.status}
-                    </Badge>
+                    <Badge className={`shrink-0 ml-auto text-xs ${statusColors[b.status] || ''}`}>{b.status}</Badge>
                   </div>
                 ))}
             </div>
@@ -224,23 +211,19 @@ function BookingCard({ booking, showDate = false }: { booking: MaintenanceBookin
             </p>
             {showDate && (
               <p className="text-xs font-semibold text-blue-600 mt-1">
-                📅{' '}
-                {new Date(booking.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', {
+                {new Date(`${booking.scheduled_date}T00:00:00`).toLocaleDateString('en-US', {
                   weekday: 'short',
                   month: 'long',
                   day: 'numeric',
                   year: 'numeric',
-                })}
+                })}{' '}
+                · {formatBookingTime(booking.scheduled_time)}
               </p>
             )}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <Badge className={`text-xs ${priorityColors[booking.priority] || ''}`}>
-              {booking.priority}
-            </Badge>
-            <Badge className={`text-xs ${statusColors[booking.status] || ''}`}>
-              {booking.status}
-            </Badge>
+            <Badge className={`text-xs ${priorityColors[booking.priority] || ''}`}>{booking.priority}</Badge>
+            <Badge className={`text-xs ${statusColors[booking.status] || ''}`}>{booking.status}</Badge>
           </div>
         </div>
       </CardContent>

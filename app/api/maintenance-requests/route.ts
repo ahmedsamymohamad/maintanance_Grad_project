@@ -3,6 +3,10 @@ import { getCurrentUser } from '@/lib/auth/session'
 
 export const runtime = 'nodejs'
 
+function isValidTime(value: unknown) {
+  return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value)
+}
+
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser()
@@ -37,13 +41,17 @@ export async function POST(request: Request) {
     const allowedPriorities = new Set(['low', 'medium', 'high', 'urgent'])
     const priority = allowedPriorities.has(normalizedPriority) ? normalizedPriority : 'medium'
 
-    // Validate scheduled_date if provided
     let scheduledDate: string | null = null
     if (payload.scheduled_date && typeof payload.scheduled_date === 'string') {
       const parsed = new Date(payload.scheduled_date + 'T00:00:00')
       if (!isNaN(parsed.getTime())) {
-        scheduledDate = payload.scheduled_date.slice(0, 10) // YYYY-MM-DD
+        scheduledDate = payload.scheduled_date.slice(0, 10)
       }
+    }
+
+    const scheduledTime = isValidTime(payload.scheduled_time) ? payload.scheduled_time : null
+    if ((scheduledTime && !scheduledDate) || (scheduledDate && payload.scheduled_time && !scheduledTime)) {
+      return Response.json({ error: 'scheduled_time requires a valid scheduled_date.' }, { status: 400 })
     }
 
     if (scheduledDate) {
@@ -59,10 +67,7 @@ export async function POST(request: Request) {
       }
 
       if (existingRequest) {
-        return Response.json(
-          { error: 'That date is already booked. Please choose another date.' },
-          { status: 409 },
-        )
+        return Response.json({ error: 'That date is already booked. Please choose another date.' }, { status: 409 })
       }
     }
 
@@ -75,6 +80,7 @@ export async function POST(request: Request) {
         description: String(payload.description).trim(),
         priority,
         scheduled_date: scheduledDate,
+        scheduled_time: scheduledTime,
         status: 'pending',
       })
       .select('*')

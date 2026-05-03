@@ -13,6 +13,7 @@ export default async function MaintenanceCalendarPage() {
       id,
       title,
       scheduled_date,
+      scheduled_time,
       status,
       priority,
       devices (brand, model, device_type),
