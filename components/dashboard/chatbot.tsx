@@ -122,8 +122,8 @@ export function Chatbot() {
               <div
                 className={`p-2 rounded-lg ${
                   isDark
-                    ? 'bg-cyan-500/10 text-cyan-400'
-                    : 'bg-blue-100 text-blue-600'
+                    ? 'bg-emerald-500/10 text-emerald-400'
+                    : 'bg-emerald-100 text-emerald-600'
                 }`}
               >
                 <Wrench className="h-5 w-5" />
@@ -315,12 +315,12 @@ export function Chatbot() {
           onClick={() => setIsOpen(true)}
           className={`rounded-full h-16 w-16 shadow-2xl transition-all duration-300 flex items-center justify-center font-bold text-2xl ${
             theme === 'dark'
-              ? 'bg-gradient-to-br from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 shadow-cyan-500/50 hover:scale-110'
-              : 'bg-gradient-to-br from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-blue-500/50 hover:scale-110'
+              ? 'bg-gradient-to-br from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-500/50 hover:scale-110'
+              : 'bg-gradient-to-br from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-emerald-500/50 hover:scale-110'
           }`}
           title="Open Maintenance EIS System"
         >
-          🔧
+          <Wrench className="h-8 w-8 text-white" />
         </button>
       )}
     </div>
