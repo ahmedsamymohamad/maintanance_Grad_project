@@ -86,9 +86,6 @@ export function DashboardNav({ profile }: DashboardNavProps) {
       .join("")
       .toUpperCase() || profile.email[0].toUpperCase();
 
-  const firstRowLinks = links.slice(0, Math.ceil(links.length / 2));
-  const secondRowLinks = links.slice(Math.ceil(links.length / 2));
-
   return (
     <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-lg border-b border-slate-200/50 shadow-sm dark:bg-slate-900/90 dark:border-slate-700/50 dark:shadow-black/30">
       <div className="container flex flex-col gap-3 py-3 md:flex-row md:items-start md:justify-between md:gap-6 md:py-4">
@@ -154,9 +151,9 @@ export function DashboardNav({ profile }: DashboardNavProps) {
           </div>
         </div>
 
-        <nav className="hidden min-w-0 flex-1 flex-col gap-2 md:ml-4 md:flex lg:ml-6">
+        <nav className="hidden min-w-0 flex-1 md:ml-4 md:flex lg:ml-6">
           <div className="flex flex-wrap items-center gap-2">
-            {firstRowLinks.map((link) => {
+            {links.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
               return (
@@ -181,35 +178,6 @@ export function DashboardNav({ profile }: DashboardNavProps) {
               );
             })}
           </div>
-
-          {secondRowLinks.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              {secondRowLinks.map((link) => {
-                const Icon = link.icon;
-                const isActive = pathname === link.href;
-                return (
-                  <Link key={link.href} href={link.href} className="relative group shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={cn(
-                        "gap-2.5 whitespace-nowrap transition-all duration-200 font-medium shrink-0",
-                        isActive
-                          ? "bg-blue-100/80 text-blue-700 hover:bg-blue-100 dark:bg-cyan-500/15 dark:text-cyan-300 dark:hover:bg-cyan-500/20"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50",
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{link.label}</span>
-                    </Button>
-                    {isActive && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-in fade-in dark:from-cyan-400 dark:to-cyan-300" />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
         </nav>
 
         <div className="flex items-center gap-2">
