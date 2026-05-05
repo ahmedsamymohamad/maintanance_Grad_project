@@ -38,6 +38,33 @@ export default async function MaintenanceCalendarPage() {
     profiles: Array.isArray(booking.profiles) ? booking.profiles[0] : booking.profiles,
   }))
 
+  // Load assigned technician for each booking (if any) so admin calendar can show assignee name
+  const bookingIds = (normalizedBookings || []).map((b: any) => b.id)
+  let assignedMap = new Map<string, any>()
+  if (bookingIds.length > 0) {
+    const { data: taskRows } = await supabase
+      .from('tasks')
+      .select('id, request_id, assigned_to')
+      .in('request_id', bookingIds)
+
+    const techIds = [...new Set((taskRows || []).map((t: any) => t.assigned_to).filter(Boolean))]
+    const { data: techProfiles } = techIds.length > 0
+      ? await supabase.from('profiles').select('id, full_name, email').in('id', techIds)
+      : { data: [] as any[] }
+
+    const techMap = new Map((techProfiles || []).map((p: any) => [p.id, p]))
+    for (const t of (taskRows || [])) {
+      if (t.assigned_to) {
+        assignedMap.set(t.request_id, techMap.get(t.assigned_to) || null)
+      }
+    }
+  }
+
+  const bookingsWithAssignee = normalizedBookings.map((b: any) => ({
+    ...b,
+    assignee: assignedMap.get(b.id) || null,
+  }))
+
   return (
     <div className="space-y-6">
       <div>
@@ -51,7 +78,7 @@ export default async function MaintenanceCalendarPage() {
             : 'Your scheduled maintenance bookings.'}
         </p>
       </div>
-      <MaintenanceCalendarView bookings={normalizedBookings} />
+      <MaintenanceCalendarView bookings={bookingsWithAssignee} />
     </div>
   )
 }

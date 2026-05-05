@@ -153,6 +153,9 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
                 <p className="text-sm text-muted-foreground mb-3">{request.description}</p>
                 <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span>Submitted: {new Date(request.created_at).toLocaleDateString()}</span>
+                  {request.assigned_technician?.full_name && (
+                    <span>Technician: {request.assigned_technician.full_name}</span>
+                  )}
                   {request.scheduled_date && (
                     <span className="flex items-center gap-1 text-blue-600 font-semibold">
                       <CalendarDays className="h-3.5 w-3.5" />

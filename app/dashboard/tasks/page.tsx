@@ -28,7 +28,7 @@ export default async function TasksPage() {
   const { data: requestRows } = taskRequestIds.length > 0
     ? await supabase
         .from('maintenance_requests')
-        .select('id, device_id')
+        .select('id, device_id, scheduled_date, scheduled_time')
         .in('id', taskRequestIds)
     : { data: [] as any[] }
 
@@ -58,12 +58,20 @@ export default async function TasksPage() {
       return deviceId ? (deviceMap.get(deviceId) || null) : null
     })(),
     profiles: task.assigned_to ? (technicianMap.get(task.assigned_to) || null) : null,
+    due_date: task.scheduled_date || (() => {
+      const req = task.request_id ? requestRows?.find((r: any) => r.id === task.request_id) : null
+      return req?.scheduled_date ?? null
+    })(),
+    scheduled_time: task.scheduled_time || (() => {
+      const req = task.request_id ? requestRows?.find((r: any) => r.id === task.request_id) : null
+      return req?.scheduled_time ?? null
+    })(),
   }))
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
         <p className="text-muted-foreground">Manage and assign maintenance tasks</p>
       </div>
       <TasksTable tasks={tasksWithProfiles} technicians={technicians || []} isAdmin />

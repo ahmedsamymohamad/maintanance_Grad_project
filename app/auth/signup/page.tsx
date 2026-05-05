@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { useEffect } from 'react'
 import { getSignupPolicy, signUp } from '../actions'
 import Link from 'next/link'
@@ -49,9 +49,11 @@ export default function SignUpPage() {
     }
   }, [])
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setLoading(true)
     setError(null)
+    const formData = new FormData(event.currentTarget)
     formData.set('role', role)
     const result = await signUp(formData)
     if (result?.error) {
@@ -110,7 +112,7 @@ export default function SignUpPage() {
           <CardDescription>Sign up to access the maintenance system</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={handleSubmit}>
+          <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="fullName">Full Name</FieldLabel>

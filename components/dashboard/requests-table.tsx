@@ -121,6 +121,7 @@ export function RequestsTable({ requests, technicians }: RequestsTableProps) {
               <TableHead>Request</TableHead>
               <TableHead>Device</TableHead>
               <TableHead>User</TableHead>
+              <TableHead>Technician</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Submitted</TableHead>
@@ -131,7 +132,7 @@ export function RequestsTable({ requests, technicians }: RequestsTableProps) {
           <TableBody>
             {requests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   No maintenance requests found
                 </TableCell>
               </TableRow>
@@ -159,6 +160,16 @@ export function RequestsTable({ requests, technicians }: RequestsTableProps) {
                       <p>{request.profiles?.full_name}</p>
                       <p className="text-sm text-muted-foreground">{request.profiles?.email}</p>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {request.assigned_technician?.full_name ? (
+                      <div>
+                        <p>{request.assigned_technician.full_name}</p>
+                        <p className="text-sm text-muted-foreground">{request.assigned_technician.email}</p>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">Not assigned yet</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={priorityColors[request.priority]}>
@@ -253,6 +264,10 @@ export function RequestsTable({ requests, technicians }: RequestsTableProps) {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Requested By</p>
                 <p>{selectedRequest?.profiles?.full_name}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Technician</p>
+                <p>{selectedRequest?.assigned_technician?.full_name || 'Not assigned yet'}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Priority</p>

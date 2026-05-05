@@ -63,9 +63,13 @@ HARD RULES — DO NOT BREAK
 ROLE-AWARE BEHAVIOR
 ============================================================
 If user_role == "user":
-  - Focus on: viewing their devices, reading prediction/risk info, opening
-    maintenance tasks, requesting parts, updating their profile, basic
-    troubleshooting.
+  - Focus on: viewing their devices, reading prediction/risk info, submitting
+    maintenance requests, updating their profile, and basic troubleshooting.
+  - When they ask how to submit a request, tell them to open Dashboard →
+    My Maintenance Requests → New Request, then choose their device, issue
+    details, and an optional preferred date/time.
+  - Do NOT tell them to go to My Tasks or use technician/admin actions for
+    submitting a request. Those are handled after an admin assigns a technician.
   - Do NOT mention dataset upload, "Premium Data", or admin training tools —
     those are not available to them. If they ask, briefly explain that
     custom dataset uploads are a premium feature and they can upgrade by
@@ -88,8 +92,11 @@ HOW THE PLATFORM WORKS (reference for your answers)
 • Sign-in is via email/password (Supabase auth). Profile lives at
   Dashboard → Profile.
 • Left-nav sections available to users/premium users include: Dashboard,
-  Devices, Tasks, Predictions, Chatbot, Profile. Premium users also see
+  Devices, Requests, Predictions, Chatbot, Profile. Premium users also see
   "My Datasets".
+• Regular users submit maintenance requests from Dashboard → My Requests.
+  Admins review the request and assign a technician; users do not manually
+  assign technicians or manage task execution.
 • Predictions come from a FastAPI ML service that scores device health and
   estimates failure risk. Risk levels are typically Low / Medium / High /
   Critical — encourage users to act on Medium+ promptly.
@@ -201,40 +208,58 @@ async function buildSessionContext(): Promise<string> {
   const supabase = createServiceRoleClient()
 
   const [devicesRes, tasksRes, predictionsRes, datasetsRes] = await Promise.all([
-    supabase
-      .from('devices')
-      .select('id, brand, model, name, serial_number, device_type')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(10)
-      .then((r) => r)
-      .catch(() => ({ data: null })),
-    supabase
-      .from('tasks')
-      .select('id, title, status')
-      .eq('assigned_to', user.id)
-      .neq('status', 'completed')
-      .order('created_at', { ascending: false })
-      .limit(8)
-      .then((r) => r)
-      .catch(() => ({ data: null })),
-    supabase
-      .from('ai_predictions')
-      .select('id, predicted_issue, confidence_score, is_acknowledged, created_at, device_id')
-      .order('created_at', { ascending: false })
-      .limit(20)
-      .then((r) => r)
-      .catch(() => ({ data: null })),
-    user.role === 'premium_user'
-      ? supabase
+    (async () => {
+      try {
+        return await supabase
+          .from('devices')
+          .select('id, brand, model, name, serial_number, device_type')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(10)
+      } catch {
+        return { data: null }
+      }
+    })(),
+    (async () => {
+      try {
+        return await supabase
+          .from('tasks')
+          .select('id, title, status')
+          .eq('assigned_to', user.id)
+          .neq('status', 'completed')
+          .order('created_at', { ascending: false })
+          .limit(8)
+      } catch {
+        return { data: null }
+      }
+    })(),
+    (async () => {
+      try {
+        return await supabase
+          .from('ai_predictions')
+          .select('id, predicted_issue, confidence_score, is_acknowledged, created_at, device_id')
+          .order('created_at', { ascending: false })
+          .limit(20)
+      } catch {
+        return { data: null }
+      }
+    })(),
+    (async () => {
+      if (user.role !== 'premium_user') {
+        return { data: null }
+      }
+
+      try {
+        return await supabase
           .from('premium_datasets')
           .select('id, file_name, status, created_at')
           .eq('uploaded_by', user.id)
           .order('created_at', { ascending: false })
           .limit(8)
-          .then((r) => r)
-          .catch(() => ({ data: null }))
-      : Promise.resolve({ data: null }),
+      } catch {
+        return { data: null }
+      }
+    })(),
   ])
 
   const ownedDeviceIds = new Set(((devicesRes as any).data || []).map((d: any) => d.id))

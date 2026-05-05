@@ -30,13 +30,40 @@ export default async function MyRequestsPage() {
     console.error('Failed to load user devices for requests:', devicesError.message)
   }
 
+  const requestIds = [...new Set((requests || []).map((request: any) => request.id))]
+  const { data: taskRows } = requestIds.length > 0
+    ? await supabase
+        .from('tasks')
+        .select('request_id, assigned_to, status')
+        .in('request_id', requestIds)
+        .in('status', ['assigned', 'in_progress', 'on_hold', 'completed'])
+    : { data: [] as any[] }
+
+  const assigneeIds = [...new Set((taskRows || []).map((task: any) => task.assigned_to).filter(Boolean))]
+  const { data: technicianRows } = assigneeIds.length > 0
+    ? await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', assigneeIds)
+    : { data: [] as any[] }
+
+  const technicianMap = new Map((technicianRows || []).map((technician: any) => [technician.id, technician]))
+  const taskMap = new Map((taskRows || []).map((task: any) => [task.request_id, task]))
+  const requestsWithAssignee = (requests || []).map((request: any) => {
+    const task = taskMap.get(request.id)
+    return {
+      ...request,
+      assigned_technician: task?.assigned_to ? (technicianMap.get(task.assigned_to) || null) : null,
+    }
+  })
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">My Maintenance Requests</h1>
         <p className="text-muted-foreground">Submit and track your maintenance requests</p>
       </div>
-      <UserRequestsView requests={requests || []} devices={devices || []} />
+      <UserRequestsView requests={requestsWithAssignee} devices={devices || []} />
     </div>
   )
 }

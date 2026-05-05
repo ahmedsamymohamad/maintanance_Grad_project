@@ -38,35 +38,35 @@ export function DashboardNav({ profile }: DashboardNavProps) {
   const pathname = usePathname();
 
   const adminLinks = [
-    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-    { href: "/dashboard/predictions", label: "AI Predictions", icon: Brain },
-    { href: "/dashboard/requests", label: "Requests", icon: ClipboardList },
-    { href: "/dashboard/maintenance-calendar", label: "Calendar", icon: CalendarCheck },
-    { href: "/dashboard/tasks", label: "Tasks", icon: Cpu },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/predictions", label: "Predictions", icon: Brain },
+    { href: "/dashboard/requests", label: "Maintenance Requests", icon: ClipboardList },
+    { href: "/dashboard/maintenance-calendar", label: "Maintenance Calendar", icon: CalendarCheck },
+    { href: "/dashboard/tasks", label: "Task Management", icon: Cpu },
     { href: "/dashboard/inventory", label: "Inventory", icon: Package },
-    { href: "/dashboard/datasets", label: "Premium Data", icon: Database },
+    { href: "/dashboard/datasets", label: "Datasets", icon: Database },
     { href: "/dashboard/users", label: "Users", icon: Users },
   ];
 
   const technicianLinks = [
-    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/my-tasks", label: "My Tasks", icon: ClipboardList },
-    { href: "/dashboard/maintenance-calendar", label: "Calendar", icon: CalendarCheck },
+    { href: "/dashboard/maintenance-calendar", label: "Maintenance Calendar", icon: CalendarCheck },
   ];
 
   const userLinks = [
-    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/my-devices", label: "My Devices", icon: Cpu },
-    { href: "/dashboard/my-requests", label: "My Requests", icon: ClipboardList },
-    { href: "/dashboard/maintenance-calendar", label: "Calendar", icon: CalendarCheck },
+    { href: "/dashboard/my-requests", label: "My Maintenance Requests", icon: ClipboardList },
+    { href: "/dashboard/maintenance-calendar", label: "Maintenance Calendar", icon: CalendarCheck },
   ];
 
   const premiumLinks = [
-    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/my-datasets", label: "My Datasets", icon: Database },
     { href: "/dashboard/my-devices", label: "My Devices", icon: Cpu },
-    { href: "/dashboard/my-requests", label: "My Requests", icon: ClipboardList },
-    { href: "/dashboard/maintenance-calendar", label: "Calendar", icon: CalendarCheck },
+    { href: "/dashboard/my-requests", label: "My Maintenance Requests", icon: ClipboardList },
+    { href: "/dashboard/maintenance-calendar", label: "Maintenance Calendar", icon: CalendarCheck },
   ];
 
   const links =

@@ -27,7 +27,7 @@ export default async function MyTasksPage() {
   const { data: requestRows } = taskRequestIds.length > 0
     ? await supabase
         .from('maintenance_requests')
-        .select('id, device_id, title, description, priority')
+        .select('id, device_id, title, description, priority, scheduled_date, scheduled_time')
         .in('id', taskRequestIds)
     : { data: [] as any[] }
 
@@ -74,6 +74,8 @@ export default async function MyTasksPage() {
       description: task.description || request?.description || task.notes || null,
       priority: task.priority || request?.priority || 'medium',
       devices: deviceId ? (deviceMap.get(deviceId) || null) : null,
+      scheduled_date: task.scheduled_date || request?.scheduled_date || null,
+      scheduled_time: task.scheduled_time || request?.scheduled_time || null,
       task_reports: reportsByTaskId.get(task.id) || [],
     }
   })

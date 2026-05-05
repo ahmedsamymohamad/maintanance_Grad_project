@@ -195,6 +195,15 @@ export function TechnicianTasksView({ tasks, inventory, technicianId }: Technici
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
+          {task.scheduled_date && (
+            <div className="text-sm">
+              <span className="text-muted-foreground">Scheduled:</span>{' '}
+              <span className="font-medium text-blue-600">
+                {new Date(`${task.scheduled_date}T00:00:00`).toLocaleDateString()}
+                {task.scheduled_time ? ` · ${task.scheduled_time}` : ''}
+              </span>
+            </div>
+          )}
           <div className="text-sm">
             <span className="text-muted-foreground">Type:</span>{' '}
             <span className="capitalize">{task.devices?.device_type}</span>

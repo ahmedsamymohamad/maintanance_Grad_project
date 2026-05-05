@@ -15,6 +15,7 @@ interface MaintenanceBooking {
   priority: string
   devices?: { brand: string; model: string; device_type: string }
   profiles?: { full_name: string; email: string }
+  assignee?: { full_name: string; email: string } | null
 }
 
 interface MaintenanceCalendarViewProps {
@@ -108,8 +109,8 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
               {bookingsOnSelected.length > 0 ? (
                 <div className="space-y-3">
                   {bookingsOnSelected.map((b) => (
-                    <BookingCard key={b.id} booking={b} />
-                  ))}
+                        <BookingCard key={b.id} booking={b} />
+                      ))}
                 </div>
               ) : (
                 <Card>
@@ -163,11 +164,11 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
           </CardHeader>
           <CardContent>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {bookings
+                  {bookings
                 .filter((b) => b.scheduled_date && b.scheduled_date >= today)
                 .sort((a, b) => `${a.scheduled_date} ${a.scheduled_time || ''}`.localeCompare(`${b.scheduled_date} ${b.scheduled_time || ''}`))
                 .map((b) => (
-                  <div key={b.id} className="flex items-start gap-3 p-3 rounded-lg border bg-slate-50/60 dark:bg-slate-900/30">
+                    <div key={b.id} className="flex items-start gap-3 p-3 rounded-lg border bg-slate-50/60 dark:bg-slate-900/30">
                     <div className="shrink-0 mt-0.5">
                       <Cpu className="h-4 w-4 text-slate-400" />
                     </div>
@@ -176,6 +177,7 @@ export function MaintenanceCalendarView({ bookings }: MaintenanceCalendarViewPro
                       <p className="text-xs text-slate-500 truncate">
                         {b.devices?.brand} {b.devices?.model}
                         {b.profiles?.full_name ? ` · ${b.profiles.full_name}` : ''}
+                        {b.assignee?.full_name ? ` · Assigned: ${b.assignee.full_name}` : ''}
                       </p>
                       <p className="text-xs font-semibold text-blue-600 mt-1">
                         {new Date(`${b.scheduled_date}T00:00:00`).toLocaleDateString('en-US', {
@@ -208,6 +210,7 @@ function BookingCard({ booking, showDate = false }: { booking: MaintenanceBookin
               {booking.devices?.brand} {booking.devices?.model}
               {booking.devices?.device_type ? ` (${booking.devices.device_type})` : ''}
               {booking.profiles?.full_name ? ` · ${booking.profiles.full_name}` : ''}
+              {booking.assignee?.full_name ? ` · Tech: ${booking.assignee.full_name}` : ''}
             </p>
             {showDate && (
               <p className="text-xs font-semibold text-blue-600 mt-1">
