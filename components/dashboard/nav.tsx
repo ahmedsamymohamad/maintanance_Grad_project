@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/dashboard/theme-toggle";
 import {
+  Menu,
   LayoutDashboard,
   ClipboardList,
   Package,
@@ -85,10 +86,13 @@ export function DashboardNav({ profile }: DashboardNavProps) {
       .join("")
       .toUpperCase() || profile.email[0].toUpperCase();
 
+  const firstRowLinks = links.slice(0, Math.ceil(links.length / 2));
+  const secondRowLinks = links.slice(Math.ceil(links.length / 2));
+
   return (
     <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-lg border-b border-slate-200/50 shadow-sm dark:bg-slate-900/90 dark:border-slate-700/50 dark:shadow-black/30">
-      <div className="container flex h-20 items-center justify-between gap-6">
-        <div className="flex items-center flex-shrink-0">
+      <div className="container flex flex-col gap-3 py-3 md:flex-row md:items-start md:justify-between md:gap-6 md:py-4">
+        <div className="flex items-center justify-between gap-3 flex-shrink-0 md:justify-start">
           <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 group">
             <div className="relative w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-500 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow dark:from-cyan-600 dark:to-cyan-500 dark:shadow-cyan-900/30">
               <Image
@@ -106,33 +110,106 @@ export function DashboardNav({ profile }: DashboardNavProps) {
               <span className="text-sm text-slate-500 leading-tight dark:text-slate-400">System</span>
             </div>
           </Link>
-        </div>
 
-        <nav className="hidden md:flex items-center gap-2 flex-1 ml-6">
-          {links.map((link) => {
-            const Icon = link.icon;
-            const isActive = pathname === link.href;
-            return (
-              <Link key={link.href} href={link.href} className="relative group">
+          <div className="flex items-center gap-2 md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "gap-2.5 transition-all duration-200 font-medium",
-                    isActive
-                      ? "bg-blue-100/80 text-blue-700 hover:bg-blue-100 dark:bg-cyan-500/15 dark:text-cyan-300 dark:hover:bg-cyan-500/20"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50",
-                  )}
+                  size="icon"
+                  aria-label="Open navigation menu"
+                  className="h-10 w-10 rounded-full border border-slate-200/60 bg-white/70 text-slate-700 hover:bg-slate-100 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-700"
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{link.label}</span>
+                  <Menu className="h-5 w-5" />
                 </Button>
-                {isActive && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-in fade-in dark:from-cyan-400 dark:to-cyan-300" />
-                )}
-              </Link>
-            );
-          })}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="start" forceMount>
+                <DropdownMenuLabel className="font-semibold px-2 py-2">
+                  Navigation
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="my-1" />
+                {links.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = pathname === link.href;
+
+                  return (
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link
+                        href={link.href}
+                        className={cn(
+                          "flex items-center gap-2 rounded-md px-2 py-2 transition-colors",
+                          isActive
+                            ? "bg-blue-100/80 text-blue-700 dark:bg-cyan-500/15 dark:text-cyan-300"
+                            : "text-slate-700 dark:text-slate-200",
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{link.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        <nav className="hidden min-w-0 flex-1 flex-col gap-2 md:ml-4 md:flex lg:ml-6">
+          <div className="flex flex-wrap items-center gap-2">
+            {firstRowLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = pathname === link.href;
+              return (
+                <Link key={link.href} href={link.href} className="relative group shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "gap-2.5 whitespace-nowrap transition-all duration-200 font-medium shrink-0",
+                      isActive
+                        ? "bg-blue-100/80 text-blue-700 hover:bg-blue-100 dark:bg-cyan-500/15 dark:text-cyan-300 dark:hover:bg-cyan-500/20"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{link.label}</span>
+                  </Button>
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-in fade-in dark:from-cyan-400 dark:to-cyan-300" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          {secondRowLinks.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {secondRowLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href;
+                return (
+                  <Link key={link.href} href={link.href} className="relative group shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "gap-2.5 whitespace-nowrap transition-all duration-200 font-medium shrink-0",
+                        isActive
+                          ? "bg-blue-100/80 text-blue-700 hover:bg-blue-100 dark:bg-cyan-500/15 dark:text-cyan-300 dark:hover:bg-cyan-500/20"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50",
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{link.label}</span>
+                    </Button>
+                    {isActive && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full animate-in fade-in dark:from-cyan-400 dark:to-cyan-300" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         <div className="flex items-center gap-2">
