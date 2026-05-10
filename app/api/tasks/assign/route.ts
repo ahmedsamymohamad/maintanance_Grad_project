@@ -1,14 +1,12 @@
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/auth/session'
+import {
+  ACTIVE_TASK_STATUSES,
+  getAvailableTechnicianIds,
+  type TechnicianScheduleEntry,
+} from '@/lib/maintenance/scheduling'
 
 export const runtime = 'nodejs'
-
-const TECHNICIAN_BLOCK_WINDOW_MINUTES = 5 * 60
-
-function timeToMinutes(value: string) {
-  const [hours, minutes] = value.split(':').map(Number)
-  return hours * 60 + minutes
-}
 
 export async function POST(request: Request) {
   try {
@@ -48,59 +46,29 @@ export async function POST(request: Request) {
     if (maintenanceRequest.scheduled_date) {
       const { data: technicianTasks, error: technicianTasksError } = await supabase
         .from('tasks')
-        .select('id, request_id, status')
+        .select('assigned_to, scheduled_date, scheduled_time')
         .eq('assigned_to', technicianId)
-        .in('status', ['assigned', 'in_progress', 'on_hold'])
+        .in('status', [...ACTIVE_TASK_STATUSES])
 
       if (technicianTasksError) {
         return Response.json({ error: technicianTasksError.message }, { status: 500 })
       }
 
-      const assignedRequestIds = (technicianTasks || [])
-        .map((task) => task.request_id)
-        .filter((id): id is string => Boolean(id))
+      const availableTechnicians = getAvailableTechnicianIds(
+        [technicianId],
+        (technicianTasks || []) as TechnicianScheduleEntry[],
+        maintenanceRequest.scheduled_date,
+        maintenanceRequest.scheduled_time,
+      )
 
-      if (assignedRequestIds.length > 0) {
-        const { data: assignedRequests, error: assignedRequestsError } = await supabase
-          .from('maintenance_requests')
-          .select('id, scheduled_date, scheduled_time, status')
-          .in('id', assignedRequestIds)
-          .eq('scheduled_date', maintenanceRequest.scheduled_date)
-          .neq('status', 'cancelled')
-
-        if (assignedRequestsError) {
-          return Response.json({ error: assignedRequestsError.message }, { status: 500 })
-        }
-
-        const targetTime = maintenanceRequest.scheduled_time
-        for (const assigned of assignedRequests || []) {
-          if (assigned.id === maintenanceRequest.id) {
-            continue
-          }
-
-          const existingTime = assigned.scheduled_time
-
-          if (!targetTime || !existingTime) {
-            return Response.json(
-              {
-                error:
-                  'This technician already has a booking on this date. Please pick another technician or choose a different time.',
-              },
-              { status: 409 },
-            )
-          }
-
-          const diffMinutes = Math.abs(timeToMinutes(existingTime) - timeToMinutes(targetTime))
-          if (diffMinutes < TECHNICIAN_BLOCK_WINDOW_MINUTES) {
-            return Response.json(
-              {
-                error:
-                  'This technician has another booking within 5 hours of this time. Please assign a different technician or reschedule.',
-              },
-              { status: 409 },
-            )
-          }
-        }
+      if (availableTechnicians.length === 0) {
+        return Response.json(
+          {
+            error:
+              'This technician has another maintenance booking within 5 hours of the requested slot. Please assign a different technician or reschedule.',
+          },
+          { status: 409 },
+        )
       }
     }
 

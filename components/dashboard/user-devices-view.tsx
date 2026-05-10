@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -26,15 +26,23 @@ import { Cpu, Plus, AlertTriangle, Printer, ScanLine } from 'lucide-react'
 
 interface UserDevicesViewProps {
   devices: any[]
+  deviceCatalog?: Array<{
+    device_type: string
+    brand: string
+    model: string
+  }>
 }
 
-export function UserDevicesView({ devices }: UserDevicesViewProps) {
+const CUSTOM_DEVICE_VALUE = '__another__'
+
+export function UserDevicesView({ devices, deviceCatalog = [] }: UserDevicesViewProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   
   // Form state
   const [deviceType, setDeviceType] = useState<string>('printer')
+  const [selectedCatalogDevice, setSelectedCatalogDevice] = useState<string>('')
   const [brand, setBrand] = useState('')
   const [model, setModel] = useState('')
   const [serialNumber, setSerialNumber] = useState('')
@@ -43,6 +51,38 @@ export function UserDevicesView({ devices }: UserDevicesViewProps) {
   const [location, setLocation] = useState('')
 
   const router = useRouter()
+
+  const catalogByType = useMemo(
+    () => (Array.isArray(deviceCatalog) ? deviceCatalog : []).filter((item) => item.device_type === deviceType),
+    [deviceCatalog, deviceType],
+  )
+
+  const isCustomDevice = selectedCatalogDevice === CUSTOM_DEVICE_VALUE
+
+  const selectCatalogDevice = (value: string) => {
+    setSelectedCatalogDevice(value)
+
+    if (value === CUSTOM_DEVICE_VALUE) {
+      setBrand('')
+      setModel('')
+      return
+    }
+
+    const selected = catalogByType.find((item) => `${item.brand}|||${item.model}` === value)
+    if (!selected) {
+      return
+    }
+
+    setBrand(selected.brand)
+    setModel(selected.model)
+  }
+
+  const onDeviceTypeChange = (nextType: string) => {
+    setDeviceType(nextType)
+    setSelectedCatalogDevice('')
+    setBrand('')
+    setModel('')
+  }
 
   const handleAddDevice = async () => {
     if (!brand || !model || !serialNumber) return
@@ -78,6 +118,7 @@ export function UserDevicesView({ devices }: UserDevicesViewProps) {
 
   const resetForm = () => {
     setDeviceType('printer')
+    setSelectedCatalogDevice('')
     setBrand('')
     setModel('')
     setSerialNumber('')
@@ -205,7 +246,7 @@ export function UserDevicesView({ devices }: UserDevicesViewProps) {
           <FieldGroup>
             <Field>
               <FieldLabel>Device Type *</FieldLabel>
-              <Select value={deviceType} onValueChange={setDeviceType}>
+              <Select value={deviceType} onValueChange={onDeviceTypeChange}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -215,16 +256,48 @@ export function UserDevicesView({ devices }: UserDevicesViewProps) {
                 </SelectContent>
               </Select>
             </Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field>
-                <FieldLabel>Brand *</FieldLabel>
-                <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="e.g., HP" />
-              </Field>
-              <Field>
-                <FieldLabel>Model *</FieldLabel>
-                <Input value={model} onChange={(e) => setModel(e.target.value)} placeholder="e.g., LaserJet Pro" />
-              </Field>
-            </div>
+            <Field>
+              <FieldLabel>Choose Device Model *</FieldLabel>
+              <Select value={selectedCatalogDevice} onValueChange={selectCatalogDevice}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose your device" />
+                </SelectTrigger>
+                <SelectContent>
+                  {catalogByType.map((item) => {
+                    const value = `${item.brand}|||${item.model}`
+                    return (
+                      <SelectItem key={`${item.device_type}-${value}`} value={value}>
+                        {item.brand} {item.model}
+                      </SelectItem>
+                    )
+                  })}
+                  <SelectItem value={CUSTOM_DEVICE_VALUE}>Another (My device is not listed)</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            {isCustomDevice ? (
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel>Brand *</FieldLabel>
+                  <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="e.g., HP" />
+                </Field>
+                <Field>
+                  <FieldLabel>Model *</FieldLabel>
+                  <Input value={model} onChange={(e) => setModel(e.target.value)} placeholder="e.g., LaserJet Pro" />
+                </Field>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel>Brand</FieldLabel>
+                  <Input value={brand} readOnly />
+                </Field>
+                <Field>
+                  <FieldLabel>Model</FieldLabel>
+                  <Input value={model} readOnly />
+                </Field>
+              </div>
+            )}
             <Field>
               <FieldLabel>Serial Number *</FieldLabel>
               <Input value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} placeholder="e.g., ABC123XYZ" />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,17 +27,25 @@ import { Textarea } from '@/components/ui/textarea'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { Plus, ClipboardList, Clock, CheckCircle, XCircle, CalendarDays, Clock3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getAvailableTechnicianIds, type TechnicianScheduleEntry } from '@/lib/maintenance/scheduling'
 
 interface UserRequestsViewProps {
   requests: any[]
   devices: any[]
+  technicianIds: string[]
+  technicianSchedules: TechnicianScheduleEntry[]
 }
 
 function toLocalDateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
+export function UserRequestsView({
+  requests,
+  devices,
+  technicianIds,
+  technicianSchedules,
+}: UserRequestsViewProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -51,8 +59,45 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
 
   const router = useRouter()
 
+  const selectedSlotAvailable = useMemo(() => {
+    if (!scheduledDate) {
+      return true
+    }
+
+    return getAvailableTechnicianIds(
+      technicianIds,
+      technicianSchedules,
+      toLocalDateStr(scheduledDate),
+      scheduledTime,
+    ).length > 0
+  }, [scheduledDate, scheduledTime, technicianIds, technicianSchedules])
+
+  const isDateBlockedForCurrentTime = (date: Date) => {
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+
+    if (date < todayStart) {
+      return true
+    }
+
+    return (
+      getAvailableTechnicianIds(
+        technicianIds,
+        technicianSchedules,
+        toLocalDateStr(date),
+        scheduledTime,
+      ).length === 0
+    )
+  }
+
   const handleSubmitRequest = async () => {
     if (!selectedDevice || !title || !description) return
+
+    if (scheduledDate && !selectedSlotAvailable) {
+      setErrorMessage('No technician is available for the selected date and time.')
+      return
+    }
+
     setLoading(true)
     setErrorMessage(null)
 
@@ -103,9 +148,6 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
     medium: 'secondary',
     low: 'outline',
   }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
 
   return (
     <>
@@ -253,7 +295,16 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={scheduledDate} onSelect={(d) => { setScheduledDate(d); setCalOpen(false) }} disabled={(date) => date < today} initialFocus />
+                  <Calendar
+                    mode="single"
+                    selected={scheduledDate}
+                    onSelect={(d) => {
+                      setScheduledDate(d)
+                      setCalOpen(false)
+                    }}
+                    disabled={isDateBlockedForCurrentTime}
+                    initialFocus
+                  />
                 </PopoverContent>
               </Popover>
             </Field>
@@ -265,12 +316,17 @@ export function UserRequestsView({ requests, devices }: UserRequestsViewProps) {
                   <Input type="time" className="pl-9" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Choose the hour you prefer. If not available, admins can adjust it later.</p>
+                {!selectedSlotAvailable && (
+                  <p className="text-xs text-destructive mt-1">
+                    No technician is available for this date and time. Pick another slot.
+                  </p>
+                )}
               </Field>
             )}
           </FieldGroup>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setAddDialogOpen(false); resetForm() }}>Cancel</Button>
-            <Button onClick={handleSubmitRequest} disabled={!selectedDevice || !title || !description || loading}>
+            <Button onClick={handleSubmitRequest} disabled={!selectedDevice || !title || !description || loading || !selectedSlotAvailable}>
               {loading ? 'Submitting...' : 'Submit Request'}
             </Button>
           </DialogFooter>
